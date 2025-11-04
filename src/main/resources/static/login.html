@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>学工系统登录</title>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; background:#f2f2f2; }
+    .login { width:320px; margin:120px auto; padding:20px; background:#fff; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+    .login h2{ margin:0 0 12px 0; font-size:18px; }
+    .login input { width:100%; padding:10px; margin:8px 0; box-sizing:border-box; }
+    .login button { width:100%; padding:10px; background:#007bff; color:#fff; border:none; cursor:pointer; }
+    .note { font-size:12px; color:#666; margin-top:10px; }
+  </style>
+</head>
+<body>
+  <div class="login">
+    <h2>学工管理系统 — 登录</h2>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="用户名" value="admin" required />
+      <input type="password" id="password" placeholder="密码" value="admin123" required />
+      <button type="submit">登录 (HTTP Basic)</button>
+    </form>
+    <div class="note">说明：该页面通过浏览器 HTTP Basic 发起请求以便测试受保护接口。</div>
+    <div class="note">默认管理员：admin / admin123，示例学生：student / student123</div>
+  </div>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function(e){
+      e.preventDefault();
+      var u = document.getElementById('username').value;
+      var p = document.getElementById('password').value;
+      fetch('/api/student/profile', {
+        method: 'GET',
+        headers: { 'Authorization': 'Basic ' + btoa(u + ':' + p) }
+      }).then(function(res){
+        if (res.status === 200) {
+          alert('登录成功！你可以继续使用 Postman 或访问受保护接口。');
+        } else if (res.status === 401) {
+          alert('认证失败：用户名或密码错误。');
+        } else {
+          alert('响应状态: ' + res.status);
+        }
+      }).catch(function(err){ alert('请求失败: ' + err); });
+    });
+  </script>
+</body>
+</html>
