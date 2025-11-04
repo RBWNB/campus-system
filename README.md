@@ -1,6 +1,6 @@
 Campus System
 =============
-Spring Boot (JDK1.8) 学工管理系统示例
+Spring Boot (JDK21) 学工管理系统示例
 
 Instructions:
 1. Ensure MySQL is running and you have a database named `campus` (the application will create tables automatically).
