@@ -34,13 +34,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
                 .csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/login.html", "/css/**", "/js/**").permitAll()
+                .antMatchers("/", "/index.html", "/login.html", "/css/**", "/js/**").permitAll()
                 .antMatchers("/api/admin/**").hasAuthority("ADMIN")
                 .antMatchers("/api/student/**").hasAnyAuthority("STUDENT","ADMIN")
                 .anyRequest().authenticated()
                 .and()
                 .httpBasic();
     }
+
 
 
 

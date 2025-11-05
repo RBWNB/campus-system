@@ -1,3 +1,4 @@
+<!-- src/main/resources/static/login.html -->
 <!doctype html>
 <html>
 <head>
@@ -13,34 +14,35 @@
   </style>
 </head>
 <body>
-  <div class="login">
-    <h2>学工管理系统 — 登录</h2>
-    <form id="loginForm">
-      <input type="text" id="username" placeholder="用户名" value="admin" required />
-      <input type="password" id="password" placeholder="密码" value="admin123" required />
-      <button type="submit">登录 (HTTP Basic)</button>
-    </form>
-    <div class="note">说明：该页面通过浏览器 HTTP Basic 发起请求以便测试受保护接口。</div>
-    <div class="note">默认管理员：admin / admin123，示例学生：student / student123</div>
-  </div>
-  <script>
-    document.getElementById('loginForm').addEventListener('submit', function(e){
-      e.preventDefault();
-      var u = document.getElementById('username').value;
-      var p = document.getElementById('password').value;
-      fetch('/api/student/profile', {
-        method: 'GET',
-        headers: { 'Authorization': 'Basic ' + btoa(u + ':' + p) }
-      }).then(function(res){
-        if (res.status === 200) {
-          alert('登录成功！你可以继续使用 Postman 或访问受保护接口。');
-        } else if (res.status === 401) {
-          alert('认证失败：用户名或密码错误。');
-        } else {
-          alert('响应状态: ' + res.status);
-        }
-      }).catch(function(err){ alert('请求失败: ' + err); });
-    });
-  </script>
+<div class="login">
+  <h2>学工管理系统 — 登录</h2>
+  <form id="loginForm">
+    <input type="text" id="username" placeholder="用户名" value="admin" required />
+    <input type="password" id="password" placeholder="密码" value="admin123" required />
+    <button type="submit">登录 (HTTP Basic)</button>
+  </form>
+  <div class="note">说明：该页面通过浏览器 HTTP Basic 发起请求以便测试受保护接口。</div>
+  <div class="note">默认管理员：admin / admin123，示例学生：student / student123</div>
+</div>
+<script>
+  document.getElementById('loginForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var u = document.getElementById('username').value;
+    var p = document.getElementById('password').value;
+    fetch('/api/student/profile', {
+      method: 'GET',
+      headers: { 'Authorization': 'Basic ' + btoa(u + ':' + p) }
+    }).then(function(res){
+      if (res.status === 200) {
+        // 登录成功后跳转到首页
+        window.location.href = '/index.html';
+      } else if (res.status === 401) {
+        alert('认证失败：用户名或密码错误。');
+      } else {
+        alert('响应状态: ' + res.status);
+      }
+    }).catch(function(err){ alert('请求失败: ' + err); });
+  });
+</script>
 </body>
 </html>
