@@ -1,0 +1,178 @@
+<!-- src/main/resources/static/student/profile.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>个人信息 - 学工管理系统</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .nav {
+      margin-bottom: 20px;
+    }
+    .nav a {
+      margin-right: 10px;
+      text-decoration: none;
+      color: #007bff;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="nav">
+    <a href="/index.html">首页</a> |
+    <a href="/student/profile.html">个人信息</a> |
+    <a href="/student/grades.html">成绩查询</a> |
+    <a href="/student/courses.html">课程查询</a> |
+    <a href="/student/leaves.html">请假申请</a> |
+    <a href="/announcements.html">公告查看</a> |
+    <a href="#" onclick="logout()">退出</a>
+  </div>
+
+  <h2>个人信息管理</h2>
+
+  <form id="profileForm">
+    <div class="form-group">
+      <label for="studentNo">学号:</label>
+      <input type="text" id="studentNo" name="studentNo">
+    </div>
+
+    <div class="form-group">
+      <label for="name">姓名:</label>
+      <input type="text" id="name" name="name" readonly>
+    </div>
+
+    <div class="form-group">
+      <label for="major">专业:</label>
+      <input type="text" id="major" name="major">
+    </div>
+
+    <div class="form-group">
+      <label for="grade">年级:</label>
+      <input type="text" id="grade" name="grade">
+    </div>
+
+    <div class="form-group">
+      <label for="phone">电话:</label>
+      <input type="text" id="phone" name="phone">
+    </div>
+
+    <div class="form-group">
+      <label for="address">地址:</label>
+      <textarea id="address" name="address"></textarea>
+    </div>
+
+    <button type="submit">保存信息</button>
+  </form>
+</div>
+
+<script>
+  // 页面加载时获取个人信息
+  window.onload = function() {
+    fetch('/api/student/profile', {
+      method: 'GET',
+      headers: {
+        'Authorization': 'Basic ' + btoa(getCredentials())
+      }
+    })
+            .then(response => response.json())
+            .then(data => {
+              if (data) {
+                document.getElementById('studentNo').value = data.studentNo || '';
+                document.getElementById('name').value = data.user ? data.user.name : '';
+                document.getElementById('major').value = data.major || '';
+                document.getElementById('grade').value = data.grade || '';
+                document.getElementById('phone').value = data.phone || '';
+                document.getElementById('address').value = data.address || '';
+              }
+            })
+            .catch(error => {
+              console.error('获取个人信息失败:', error);
+            });
+  };
+
+  // 提交表单更新个人信息
+  document.getElementById('profileForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const profileData = {
+      studentNo: document.getElementById('studentNo').value,
+      major: document.getElementById('major').value,
+      grade: document.getElementById('grade').value,
+      phone: document.getElementById('phone').value,
+      address: document.getElementById('address').value
+    };
+
+    fetch('/api/student/info', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Basic ' + btoa(getCredentials())
+      },
+      body: JSON.stringify(profileData)
+    })
+            .then(response => {
+              if (response.ok) {
+                alert('个人信息更新成功');
+              } else {
+                alert('更新失败');
+              }
+            })
+            .catch(error => {
+              console.error('更新失败:', error);
+              alert('更新失败');
+            });
+  });
+
+  // 获取存储的凭据
+  function getCredentials() {
+    return localStorage.getItem('credentials') || '';
+  }
+
+  // 退出登录
+  function logout() {
+    localStorage.removeItem('credentials');
+    window.location.href = '/login.html';
+  }
+</script>
+</body>
+</html>

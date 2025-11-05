@@ -1,0 +1,125 @@
+<!-- src/main/resources/static/student/grades.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>成绩查询 - 学工管理系统</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .nav {
+      margin-bottom: 20px;
+    }
+    .nav a {
+      margin-right: 10px;
+      text-decoration: none;
+      color: #007bff;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="nav">
+    <a href="/index.html">首页</a> |
+    <a href="/student/profile.html">个人信息</a> |
+    <a href="/student/grades.html">成绩查询</a> |
+    <a href="/student/courses.html">课程查询</a> |
+    <a href="/student/leaves.html">请假申请</a> |
+    <a href="/announcements.html">公告查看</a> |
+    <a href="#" onclick="logout()">退出</a>
+  </div>
+
+  <h2>成绩查询</h2>
+
+  <table id="gradesTable">
+    <thead>
+    <tr>
+      <th>课程代码</th>
+      <th>课程名称</th>
+      <th>学分</th>
+      <th>成绩</th>
+      <th>成绩类型</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- 成绩数据将通过JavaScript动态填充 -->
+    </tbody>
+  </table>
+</div>
+
+<script>
+  // 页面加载时获取成绩信息
+  window.onload = function() {
+    fetch('/api/student/grades', {
+      method: 'GET',
+      headers: {
+        'Authorization': 'Basic ' + btoa(getCredentials())
+      }
+    })
+            .then(response => response.json())
+            .then(data => {
+              const tbody = document.querySelector('#gradesTable tbody');
+              tbody.innerHTML = '';
+
+              if (data && data.length > 0) {
+                data.forEach(grade => {
+                  const row = document.createElement('tr');
+                  row.innerHTML = `
+                            <td>${grade.course.code || ''}</td>
+                            <td>${grade.course.name || ''}</td>
+                            <td>${grade.course.credit || ''}</td>
+                            <td>${grade.score || ''}</td>
+                            <td>${grade.gradeType || ''}</td>
+                        `;
+                  tbody.appendChild(row);
+                });
+              } else {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="5">暂无成绩记录</td>';
+                tbody.appendChild(row);
+              }
+            })
+            .catch(error => {
+              console.error('获取成绩信息失败:', error);
+            });
+  };
+
+  // 获取存储的凭据
+  function getCredentials() {
+    return localStorage.getItem('credentials') || '';
+  }
+
+  // 退出登录
+  function logout() {
+    localStorage.removeItem('credentials');
+    window.location.href = '/login.html';
+  }
+</script>
+</body>
+</html>

@@ -5,12 +5,51 @@
   <meta charset="utf-8">
   <title>学工系统登录</title>
   <style>
-    body { font-family: Arial, Helvetica, sans-serif; background:#f2f2f2; }
-    .login { width:320px; margin:120px auto; padding:20px; background:#fff; border-radius:6px; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
-    .login h2{ margin:0 0 12px 0; font-size:18px; }
-    .login input { width:100%; padding:10px; margin:8px 0; box-sizing:border-box; }
-    .login button { width:100%; padding:10px; background:#007bff; color:#fff; border:none; cursor:pointer; }
-    .note { font-size:12px; color:#666; margin-top:10px; }
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background:#f2f2f2;
+    }
+    .login {
+      width:320px;
+      margin:120px auto;
+      padding:20px;
+      background:#fff;
+      border-radius:6px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    }
+    .login h2{
+      margin:0 0 12px 0;
+      font-size:18px;
+    }
+    .login input {
+      width:100%;
+      padding:10px;
+      margin:8px 0;
+      box-sizing:border-box;
+    }
+    .login button {
+      width:100%;
+      padding:10px;
+      background:#007bff;
+      color:#fff;
+      border:none;
+      cursor:pointer;
+    }
+    .note {
+      font-size:12px;
+      color:#666;
+      margin-top:10px;
+    }
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 15px;
+      color: #007bff;
+      text-decoration: none;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -23,17 +62,22 @@
   </form>
   <div class="note">说明：该页面通过浏览器 HTTP Basic 发起请求以便测试受保护接口。</div>
   <div class="note">默认管理员：admin / admin123，示例学生：student / student123</div>
+  <a href="/index.html" class="back-link">返回首页</a>
 </div>
 <script>
   document.getElementById('loginForm').addEventListener('submit', function(e){
     e.preventDefault();
     var u = document.getElementById('username').value;
     var p = document.getElementById('password').value;
+    var credentials = u + ':' + p;
+
     fetch('/api/student/profile', {
       method: 'GET',
-      headers: { 'Authorization': 'Basic ' + btoa(u + ':' + p) }
+      headers: { 'Authorization': 'Basic ' + btoa(credentials) }
     }).then(function(res){
       if (res.status === 200) {
+        // 保存凭据到localStorage
+        localStorage.setItem('credentials', credentials);
         // 登录成功后跳转到首页
         window.location.href = '/index.html';
       } else if (res.status === 401) {

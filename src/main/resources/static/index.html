@@ -1,3 +1,4 @@
+<!-- src/main/resources/static/index.html -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -60,6 +61,22 @@
             background-color: #e8f4fc;
             border-radius: 4px;
         }
+        .navigation {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .nav-link {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .nav-link:hover {
+            background-color: #2980b9;
+        }
     </style>
 </head>
 <body>
@@ -70,8 +87,13 @@
 <div class="container">
     <h2 style="text-align: center; color: #2c3e50;">欢迎使用学工管理系统</h2>
 
-    <div style="text-align: center;">
-        <a href="/login.html" class="btn">进入登录页面</a>
+    <div class="navigation">
+        <a href="/login.html" class="nav-link">登录系统</a>
+        <a href="/student/profile.html" class="nav-link">个人信息</a>
+        <a href="/student/grades.html" class="nav-link">成绩查询</a>
+        <a href="/student/courses.html" class="nav-link">课程查询</a>
+        <a href="/student/leaves.html" class="nav-link">请假申请</a>
+        <a href="/announcements.html" class="nav-link">公告查看</a>
     </div>
 
     <div class="features">
@@ -94,15 +116,19 @@
     </div>
 
     <div class="redirect-message">
-        <p>如果没有自动跳转，请点击上面的按钮进入登录页面。</p>
+        <p>点击上方导航链接访问相应功能页面</p>
     </div>
 </div>
 
-<!--<script>        // 页面加载完成后立即跳转到登录页
-window.onload = function() {
-    window.location.href = '/login.html';
-};
-</script>-->
-
+<script>
+    // 页面加载完成后检查是否已登录
+    window.onload = function() {
+        const credentials = localStorage.getItem('credentials');
+        if (credentials) {
+            // 如果已登录，可以显示不同的界面或保持原样
+            console.log('用户已登录');
+        }
+    };
+</script>
 </body>
 </html>

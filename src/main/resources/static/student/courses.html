@@ -1,0 +1,156 @@
+<!-- src/main/resources/static/student/courses.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>课程查询 - 学工管理系统</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .search-box {
+      margin-bottom: 20px;
+    }
+    .search-box input {
+      padding: 8px;
+      width: 300px;
+      margin-right: 10px;
+    }
+    .nav {
+      margin-bottom: 20px;
+    }
+    .nav a {
+      margin-right: 10px;
+      text-decoration: none;
+      color: #007bff;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="nav">
+    <a href="/index.html">首页</a> |
+    <a href="/student/profile.html">个人信息</a> |
+    <a href="/student/grades.html">成绩查询</a> |
+    <a href="/student/courses.html">课程查询</a> |
+    <a href="/student/leaves.html">请假申请</a> |
+    <a href="/announcements.html">公告查看</a> |
+    <a href="#" onclick="logout()">退出</a>
+  </div>
+
+  <h2>课程查询</h2>
+
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="输入课程名称或代码进行搜索">
+    <button onclick="searchCourses()">搜索</button>
+  </div>
+
+  <table id="coursesTable">
+    <thead>
+    <tr>
+      <th>课程代码</th>
+      <th>课程名称</th>
+      <th>学分</th>
+      <th>描述</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- 课程数据将通过JavaScript动态填充 -->
+    </tbody>
+  </table>
+</div>
+
+<script>
+  // 页面加载时获取所有课程信息
+  window.onload = function() {
+    loadCourses();
+  };
+
+  // 加载课程信息
+  function loadCourses(query = '') {
+    const url = query ? `/api/courses?q=${encodeURIComponent(query)}` : '/api/courses';
+
+    fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': 'Basic ' + btoa(getCredentials())
+      }
+    })
+            .then(response => response.json())
+            .then(data => {
+              const tbody = document.querySelector('#coursesTable tbody');
+              tbody.innerHTML = '';
+
+              if (data && data.length > 0) {
+                data.forEach(course => {
+                  const row = document.createElement('tr');
+                  row.innerHTML = `
+                            <td>${course.code || ''}</td>
+                            <td>${course.name || ''}</td>
+                            <td>${course.credit || ''}</td>
+                            <td>${course.description || ''}</td>
+                        `;
+                  tbody.appendChild(row);
+                });
+              } else {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="4">暂无课程信息</td>';
+                tbody.appendChild(row);
+              }
+            })
+            .catch(error => {
+              console.error('获取课程信息失败:', error);
+            });
+  }
+
+  // 搜索课程
+  function searchCourses() {
+    const query = document.getElementById('searchInput').value;
+    loadCourses(query);
+  }
+
+  // 回车搜索
+  document.getElementById('searchInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      searchCourses();
+    }
+  });
+
+  // 获取存储的凭据
+  function getCredentials() {
+    return localStorage.getItem('credentials') || '';
+  }
+
+  // 退出登录
+  function logout() {
+    localStorage.removeItem('credentials');
+    window.location.href = '/login.html';
+  }
+</script>
+</body>
+</html>
