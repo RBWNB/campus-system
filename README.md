@@ -1,11 +1,27 @@
-Campus System
-=============
-学工管理系统
-使用JDK21，MySQL8.0，Maven用内置的bundle3
-克隆项目后记得看yml项目里的mysql账号密码和你的对不对的上，对不上就改成自己的
-要创建一个campus_system的数据库（必须！）
+# Campus System 学工管理系统
 
-正常启动后从http://localhost:8080/login.html进入
-两个默认账号密码：
-1  Default admin: admin / admin123
-2  Default student: student / student123
+## 技术栈
+- **JDK 21**
+- **MySQL 8.0**
+- **Maven** (使用内置的 bundle 3)
+
+## 环境配置
+1. 克隆项目到本地
+2. 检查 `application.yml` 中的 MySQL 账号密码配置，确保与你的本地环境一致
+3. 创建名为 `campus_system` 的数据库（必须执行）
+
+## 启动说明
+正常启动后访问：http://localhost:8080/login.html
+
+## 默认账号
+系统提供两个默认测试账号：
+
+| 角色 | 用户名 | 密码 |
+|------|--------|------|
+| 管理员 | admin | admin123 |
+| 学生 | student | student123 |
+
+## 注意事项
+- 请确保 MySQL 服务已启动
+- 首次运行前请执行数据库创建操作
+- 如遇到连接问题，请检查数据库配置
