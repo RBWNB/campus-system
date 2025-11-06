@@ -1,0 +1,142 @@
+<!-- src/main/resources/static/admin/index.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理员面板 - 学工管理系统</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+    .header {
+      background-color: #2c3e50;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    .feature-card {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 1rem;
+      text-align: center;
+      transition: transform 0.3s;
+    }
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .feature-card h3 {
+      color: #e74c3c;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      background-color: #e74c3c;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      margin-top: 1rem;
+      transition: background-color 0.3s;
+    }
+    .btn:hover {
+      background-color: #c0392b;
+    }
+    .nav {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .nav a {
+      margin-right: 10px;
+      text-decoration: none;
+      color: #007bff;
+    }
+  </style>
+</head>
+<body>
+<div class="header">
+  <h1>学工管理系统 - 管理员面板</h1>
+</div>
+
+<div class="container">
+  <div class="nav">
+    <a href="/admin/index.html">首页</a> |
+    <a href="/admin/students.html">学生管理</a> |
+    <a href="/admin/courses.html">课程管理</a> |
+    <a href="/admin/classrooms.html">教室管理</a> |
+    <a href="/admin/schedule.html">排课管理</a> |
+    <a href="/admin/announcements.html">公告管理</a> |
+    <a href="#" onclick="logout()">退出</a>
+  </div>
+
+  <h2 style="text-align: center; color: #2c3e50;">欢迎使用管理员面板</h2>
+  <p style="text-align: center;">请选择您要管理的功能模块</p>
+
+  <div class="features">
+    <div class="feature-card">
+      <h3>学生管理</h3>
+      <p>管理学生基本信息和账户</p>
+      <a href="/admin/students.html" class="btn">学生管理</a>
+    </div>
+    <div class="feature-card">
+      <h3>课程管理</h3>
+      <p>管理课程信息和设置</p>
+      <a href="/admin/courses.html" class="btn">课程管理</a>
+    </div>
+    <div class="feature-card">
+      <h3>教室管理</h3>
+      <p>管理教室资源和容量</p>
+      <a href="/admin/classrooms.html" class="btn">教室管理</a>
+    </div>
+    <div class="feature-card">
+      <h3>排课管理</h3>
+      <p>安排课程时间和教室</p>
+      <a href="/admin/schedule.html" class="btn">排课管理</a>
+    </div>
+    <div class="feature-card">
+      <h3>公告管理</h3>
+      <p>发布公告和重要通知</p>
+      <a href="/admin/announcements.html" class="btn">公告管理</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 获取存储的凭据
+  function getCredentials() {
+    return localStorage.getItem('credentials') || '';
+  }
+
+  // 退出登录
+  function logout() {
+    localStorage.removeItem('credentials');
+    window.location.href = '/login.html';
+  }
+
+  // 页面加载完成后检查是否已登录
+  window.onload = function() {
+    const credentials = localStorage.getItem('credentials');
+    if (!credentials) {
+      window.location.href = '/login.html';
+    }
+  };
+</script>
+</body>
+</html>

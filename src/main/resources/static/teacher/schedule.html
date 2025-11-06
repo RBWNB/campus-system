@@ -1,0 +1,168 @@
+<!-- src/main/resources/static/teacher/schedule.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>课程安排 - 学工管理系统</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .nav {
+            margin-bottom: 20px;
+        }
+        .nav a {
+            margin-right: 10px;
+            text-decoration: none;
+            color: #007bff;
+        }
+        .weekdays {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .weekday-btn {
+            padding: 10px 20px;
+            background-color: #e9ecef;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .weekday-btn.active {
+            background-color: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="nav">
+        <a href="/teacher/index.html">首页</a> |
+        <a href="/teacher/schedule.html">课程安排</a> |
+        <a href="/teacher/grades.html">成绩管理</a> |
+        <a href="/announcements.html">公告查看</a> |
+        <a href="#" onclick="logout()">退出</a>
+    </div>
+
+    <h2>课程安排</h2>
+
+    <div class="weekdays">
+        <button class="weekday-btn active" data-weekday="1">周一</button>
+        <button class="weekday-btn" data-weekday="2">周二</button>
+        <button class="weekday-btn" data-weekday="3">周三</button>
+        <button class="weekday-btn" data-weekday="4">周四</button>
+        <button class="weekday-btn" data-weekday="5">周五</button>
+        <button class="weekday-btn" data-weekday="6">周六</button>
+        <button class="weekday-btn" data-weekday="7">周日</button>
+    </div>
+
+    <table id="scheduleTable">
+        <thead>
+        <tr>
+            <th>课程名称</th>
+            <th>教室</th>
+            <th>开始时间</th>
+            <th>结束时间</th>
+            <th>学期</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- 课表数据将通过JavaScript动态填充 -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    let currentWeekday = 1;
+
+    // 页面加载时获取课表信息
+    window.onload = function() {
+        loadSchedule(currentWeekday);
+
+        // 添加星期按钮事件监听器
+        document.querySelectorAll('.weekday-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.weekday-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.classList.add('active');
+                currentWeekday = parseInt(this.getAttribute('data-weekday'));
+                loadSchedule(currentWeekday);
+            });
+        });
+    };
+
+    // 加载课表信息
+    function loadSchedule(weekday) {
+        fetch(`/api/teacher/schedule?weekday=${weekday}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(getCredentials())
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.querySelector('#scheduleTable tbody');
+                tbody.innerHTML = '';
+
+                if (data && data.length > 0) {
+                    data.forEach(schedule => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                        <td>${schedule.course ? schedule.course.name : ''}</td>
+                        <td>${schedule.classroom ? schedule.classroom.name : ''}</td>
+                        <td>${schedule.startTime || ''}</td>
+                        <td>${schedule.endTime || ''}</td>
+                        <td>${schedule.term || ''}</td>
+                    `;
+                        tbody.appendChild(row);
+                    });
+                } else {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="5">当天暂无课程安排</td>';
+                    tbody.appendChild(row);
+                }
+            })
+            .catch(error => {
+                console.error('获取课表信息失败:', error);
+            });
+    }
+
+    // 获取存储的凭据
+    function getCredentials() {
+        return localStorage.getItem('credentials') || '';
+    }
+
+    // 退出登录
+    function logout() {
+        localStorage.removeItem('credentials');
+        window.location.href = '/login.html';
+    }
+</script>
+</body>
+</html>

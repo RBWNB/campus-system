@@ -1,0 +1,411 @@
+<!-- src/main/resources/static/admin/students.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学生管理 - 学工管理系统</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    .nav {
+      margin-bottom: 20px;
+    }
+    .nav a {
+      margin-right: 10px;
+      text-decoration: none;
+      color: #007bff;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .delete-btn {
+      background-color: #dc3545;
+    }
+    .delete-btn:hover {
+      background-color: #bd2130;
+    }
+    .search-box {
+      margin-bottom: 20px;
+    }
+    .search-box input {
+      padding: 8px;
+      width: 300px;
+      margin-right: 10px;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgb(0,0,0);
+      background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 5% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 50%;
+      border-radius: 8px;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .form-row {
+      display: flex;
+      gap: 10px;
+    }
+    .form-col {
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="nav">
+    <a href="/admin/index.html">首页</a> |
+    <a href="/admin/students.html">学生管理</a> |
+    <a href="/admin/courses.html">课程管理</a> |
+    <a href="/admin/classrooms.html">教室管理</a> |
+    <a href="/admin/schedule.html">排课管理</a> |
+    <a href="/admin/announcements.html">公告管理</a> |
+    <a href="#" onclick="logout()">退出</a>
+  </div>
+
+  <h2>学生管理</h2>
+
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="输入学号或姓名进行搜索">
+    <button onclick="searchStudents()">搜索</button>
+    <button onclick="openAddModal()" style="background-color: #28a745;">添加学生</button>
+  </div>
+
+  <table id="studentsTable">
+    <thead>
+    <tr>
+      <th>学号</th>
+      <th>姓名</th>
+      <th>专业</th>
+      <th>年级</th>
+      <th>电话</th>
+      <th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!-- 学生数据将通过JavaScript动态填充 -->
+    </tbody>
+  </table>
+
+  <!-- 添加/编辑学生模态框 -->
+  <div id="studentModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h3 id="modalTitle">添加学生</h3>
+
+      <form id="studentForm">
+        <input type="hidden" id="studentId">
+
+        <div class="form-row">
+          <div class="form-col">
+            <div class="form-group">
+              <label for="studentNo">学号:</label>
+              <input type="text" id="studentNo" required>
+            </div>
+          </div>
+          <div class="form-col">
+            <div class="form-group">
+              <label for="name">姓名:</label>
+              <input type="text" id="name" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-col">
+            <div class="form-group">
+              <label for="major">专业:</label>
+              <input type="text" id="major">
+            </div>
+          </div>
+          <div class="form-col">
+            <div class="form-group">
+              <label for="grade">年级:</label>
+              <input type="text" id="grade">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-col">
+            <div class="form-group">
+              <label for="phone">电话:</label>
+              <input type="text" id="phone">
+            </div>
+          </div>
+          <div class="form-col">
+            <div class="form-group">
+              <label for="username">用户名:</label>
+              <input type="text" id="username" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="address">地址:</label>
+          <textarea id="address"></textarea>
+        </div>
+
+        <button type="submit">保存</button>
+        <button type="button" onclick="closeModal()">取消</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 页面加载时获取所有学生信息
+  window.onload = function() {
+    loadStudents();
+
+    // 获取模态框元素
+    const modal = document.getElementById("studentModal");
+    const span = document.getElementsByClassName("close")[0];
+
+    // 点击关闭按钮关闭模态框
+    span.onclick = function() {
+      modal.style.display = "none";
+    }
+
+    // 点击模态框外部关闭它
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+
+    // 表单提交事件
+    document.getElementById('studentForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      saveStudent();
+    });
+  };
+
+  // 加载学生信息
+  function loadStudents(query = '') {
+    const url = query ? `/api/admin/students?q=${encodeURIComponent(query)}` : '/api/admin/students';
+
+    fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': 'Basic ' + btoa(getCredentials())
+      }
+    })
+            .then(response => response.json())
+            .then(data => {
+              const tbody = document.querySelector('#studentsTable tbody');
+              tbody.innerHTML = '';
+
+              if (data && data.length > 0) {
+                data.forEach(student => {
+                  const row = document.createElement('tr');
+                  row.innerHTML = `
+                        <td>${student.studentNo || ''}</td>
+                        <td>${student.user ? student.user.name : ''}</td>
+                        <td>${student.major || ''}</td>
+                        <td>${student.grade || ''}</td>
+                        <td>${student.phone || ''}</td>
+                        <td>
+                            <button onclick="editStudent(${student.id})">编辑</button>
+                            <button class="delete-btn" onclick="deleteStudent(${student.id})">删除</button>
+                        </td>
+                    `;
+                  tbody.appendChild(row);
+                });
+              } else {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="6">暂无学生信息</td>';
+                tbody.appendChild(row);
+              }
+            })
+            .catch(error => {
+              console.error('获取学生信息失败:', error);
+            });
+  }
+
+  // 搜索学生
+  function searchStudents() {
+    const query = document.getElementById('searchInput').value;
+    loadStudents(query);
+  }
+
+  // 打开添加学生模态框
+  function openAddModal() {
+    document.getElementById('modalTitle').textContent = '添加学生';
+    document.getElementById('studentForm').reset();
+    document.getElementById('studentId').value = '';
+    document.getElementById("studentModal").style.display = "block";
+  }
+
+  // 编辑学生
+  function editStudent(studentId) {
+    // 这里应该调用API获取学生详细信息并填充到表单中
+    // 为了简化，我们只打开模态框
+    document.getElementById('modalTitle').textContent = '编辑学生';
+    document.getElementById('studentId').value = studentId;
+    document.getElementById("studentModal").style.display = "block";
+  }
+
+  // 删除学生
+  function deleteStudent(studentId) {
+    if (confirm('确定要删除这个学生吗？')) {
+      // 调用API删除学生
+      fetch(`/api/admin/students/${studentId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': 'Basic ' + btoa(getCredentials())
+        }
+      })
+              .then(response => {
+                if (response.ok) {
+                  alert('学生删除成功');
+                  loadStudents(); // 重新加载学生列表
+                } else {
+                  alert('学生删除失败');
+                }
+              })
+              .catch(error => {
+                console.error('删除学生失败:', error);
+                alert('删除学生失败');
+              });
+    }
+  }
+
+  // 保存学生信息
+  function saveStudent() {
+    const studentId = document.getElementById('studentId').value;
+    const studentData = {
+      studentNo: document.getElementById('studentNo').value,
+      major: document.getElementById('major').value,
+      grade: document.getElementById('grade').value,
+      phone: document.getElementById('phone').value,
+      address: document.getElementById('address').value,
+      user: {
+        name: document.getElementById('name').value,
+        username: document.getElementById('username').value
+      }
+    };
+
+    const method = studentId ? 'PUT' : 'POST';
+    const url = studentId ? `/api/admin/students/${studentId}` : '/api/admin/students';
+
+    fetch(url, {
+      method: method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Basic ' + btoa(getCredentials())
+      },
+      body: JSON.stringify(studentData)
+    })
+            .then(response => {
+              if (response.ok) {
+                alert('学生信息保存成功');
+                closeModal();
+                loadStudents(); // 重新加载学生列表
+              } else {
+                alert('学生信息保存失败');
+              }
+            })
+            .catch(error => {
+              console.error('保存学生信息失败:', error);
+              alert('保存学生信息失败');
+            });
+  }
+
+  // 关闭模态框
+  function closeModal() {
+    document.getElementById("studentModal").style.display = "none";
+  }
+
+  // 获取存储的凭据
+  function getCredentials() {
+    return localStorage.getItem('credentials') || '';
+  }
+
+  // 退出登录
+  function logout() {
+    localStorage.removeItem('credentials');
+    window.location.href = '/login.html';
+  }
+
+  // 回车搜索
+  document.getElementById('searchInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      searchStudents();
+    }
+  });
+</script>
+</body>
+</html>
