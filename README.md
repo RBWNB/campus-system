@@ -1,14 +1,29 @@
-Campus System
-=============
-Spring Boot (JDK21) 学工管理系统示例
+# Campus System 学工管理系统
 
-Instructions:
-1. Ensure MySQL is running and you have a database named `campus` (the application will create tables automatically).
-   If you need to create: `CREATE DATABASE campus CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`
-2. Update DB credentials in src/main/resources/application.yml if needed (already set to your provided credentials).
-3. Build and run:
-   mvn clean package
-   java -jar target/campus-system-0.0.1-SNAPSHOT.jar
-4. Open http://localhost:8080/login.html to use the simple login page.
-   Default admin: admin / admin123
-   Default student: student / student123
+## 技术栈
+- **JDK 21**
+- **MySQL 8.0**
+- **Maven** (使用内置的 bundle 3)
+
+## 环境配置
+1. 克隆项目到本地
+2. 第一次运行的时候一定要配置如下两条：
+3. 检查 `application.yml` 中的 MySQL 账号密码配置，确保与你的本地环境一致
+4. 创建名为 `campus_system` 的数据库（必须执行）
+   
+
+## 启动说明
+正常启动后访问：http://localhost:8080/login.html
+
+## 默认账号
+系统提供两个默认测试账号：
+
+| 角色 | 用户名 | 密码 |
+|------|--------|------|
+| 管理员 | admin | admin123 |
+| 学生 | student | student123 |
+
+## 注意事项
+- 请确保 MySQL 服务已启动
+- 首次运行前请执行数据库创建操作
+- 如遇到连接问题，请检查数据库配置
