@@ -33,6 +33,8 @@ public class AdminController {
         return ResponseEntity.ok(u);
     }
 
+
+
     @GetMapping("/users")
     public List<User> listUsers() { return userRepo.findAll(); }
 
