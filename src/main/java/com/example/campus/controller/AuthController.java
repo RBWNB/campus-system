@@ -33,6 +33,7 @@ public class AuthController {
         u.setUsername(req.getUsername());
         u.setPassword(passwordEncoder.encode(req.getPassword()));
         u.setRole(com.example.campus.entity.Role.STUDENT); // 默认注册为学生
+        u.setEmail(req.getEmail()); // 设置邮箱
         u.setCreatedAt(Timestamp.from(Instant.now()));
         userRepository.save(u);
         return ResponseEntity.ok("注册成功");

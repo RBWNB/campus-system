@@ -89,6 +89,7 @@
     <h3>学生注册</h3>
     <form id="registerForm">
       <input type="text" id="regUsername" placeholder="用户名" required />
+      <input type="email" id="regEmail" placeholder="邮箱" required />
       <input type="password" id="regPassword" placeholder="密码" required />
       <button type="submit">注册</button>
     </form>
@@ -144,6 +145,7 @@
   document.getElementById('registerForm').addEventListener('submit', function(e){
     e.preventDefault();
     var username = document.getElementById('regUsername').value;
+    var email = document.getElementById('regEmail').value;
     var password = document.getElementById('regPassword').value;
 
     fetch('/api/auth/register', {
@@ -153,12 +155,14 @@
       },
       body: JSON.stringify({
         username: username,
+        email: email,
         password: password
       })
     }).then(function(res){
       if (res.ok) {
         alert('注册成功，请登录');
         document.getElementById('regUsername').value = '';
+        document.getElementById('regEmail').value = '';
         document.getElementById('regPassword').value = '';
       } else {
         res.text().then(text => alert('注册失败: ' + text));
