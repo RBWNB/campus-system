@@ -35,6 +35,18 @@ public class InitDataRunner {
                 userRepo.save(admin);
             }
 
+            // 在现有代码中添加教师用户初始化
+            if (!userRepo.findByUsername("teacher").isPresent()) {
+                User teacher = new User();
+                teacher.setUsername("teacher");
+                teacher.setPassword(passwordEncoder.encode("teacher123"));
+                teacher.setRole(Role.TEACHER);
+                teacher.setName("系统教师");
+                teacher.setEmail("teacher@example.com");
+                teacher.setCreatedAt(Timestamp.from(Instant.now()));
+                userRepo.save(teacher);
+            }
+
             if (!userRepo.findByUsername("student").isPresent()) {
                 User s = new User();
                 s.setUsername("student");

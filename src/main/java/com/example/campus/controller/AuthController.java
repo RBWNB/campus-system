@@ -11,6 +11,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -30,7 +32,7 @@ public class AuthController {
         User u = new User();
         u.setUsername(req.getUsername());
         u.setPassword(passwordEncoder.encode(req.getPassword()));
-        u.setRole(com.example.campus.entity.Role.STUDENT);
+        u.setRole(com.example.campus.entity.Role.STUDENT); // 默认注册为学生
         u.setCreatedAt(Timestamp.from(Instant.now()));
         userRepository.save(u);
         return ResponseEntity.ok("注册成功");
@@ -39,6 +41,11 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<?> me(@AuthenticationPrincipal org.springframework.security.core.userdetails.User user) {
         if (user == null) return ResponseEntity.status(401).body("未登录");
-        return ResponseEntity.ok(user.getUsername());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("username", user.getUsername());
+        response.put("role", user.getAuthorities());
+
+        return ResponseEntity.ok(response);
     }
 }
