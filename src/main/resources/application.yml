@@ -15,11 +15,15 @@ spring:
 
 server:
   port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
   tomcat:
     apr:
       enabled: false
 
-# 日志配置（可选）
 logging:
   level:
     org.hibernate.SQL: DEBUG
