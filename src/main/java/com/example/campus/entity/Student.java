@@ -19,7 +19,6 @@ public class Student {
 
     @Column(name="student_no", unique = true)
     private String studentNo;
-
     private String major;
     private String grade;
     private String phone;

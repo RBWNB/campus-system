@@ -101,6 +101,11 @@
       <textarea id="address" name="address"></textarea>
     </div>
 
+    <div class="form-group">
+      <label for="email">邮箱:</label>
+      <input type="email" id="email" name="email">
+    </div>
+
     <button type="submit">保存信息</button>
   </form>
 </div>
@@ -119,6 +124,7 @@
               if (data) {
                 document.getElementById('studentNo').value = data.studentNo || '';
                 document.getElementById('name').value = data.user ? data.user.name : '';
+                document.getElementById('email').value = data.user ? data.user.email : '';
                 document.getElementById('major').value = data.major || '';
                 document.getElementById('grade').value = data.grade || '';
                 document.getElementById('phone').value = data.phone || '';
@@ -139,7 +145,10 @@
       major: document.getElementById('major').value,
       grade: document.getElementById('grade').value,
       phone: document.getElementById('phone').value,
-      address: document.getElementById('address').value
+      address: document.getElementById('address').value,
+      user: {
+        name: document.getElementById('name').value,
+      }
     };
 
     fetch('/api/student/info', {

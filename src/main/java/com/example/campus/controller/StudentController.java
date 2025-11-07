@@ -36,6 +36,16 @@ public class StudentController {
         User u = userRepo.findByUsername(ud.getUsername()).orElse(null);
         if (u == null) return ResponseEntity.notFound().build();
 
+        // 关键修改：更新用户信息（姓名和邮箱）
+        if (info.getUser() != null) {
+            // 更新用户姓名
+            if (info.getUser().getName() != null && !info.getUser().getName().trim().isEmpty()) {
+                u.setName(info.getUser().getName());
+            }
+            // 保存用户信息到数据库
+            userRepo.save(u);
+        }
+
         Student s = studentRepo.findByUserId(u.getId()).orElse(new Student());
         s.setUser(u);
         s.setStudentNo(info.getStudentNo());
@@ -44,6 +54,7 @@ public class StudentController {
         s.setPhone(info.getPhone());
         s.setAddress(info.getAddress());
         studentRepo.save(s);
+
         return ResponseEntity.ok(s);
     }
 
