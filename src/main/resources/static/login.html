@@ -115,20 +115,30 @@
         localStorage.setItem('credentials', credentials);
 
         // 获取用户详细信息以确定角色
-        fetch('/api/student/profile', {
+        // 建议修改为先获取用户信息，再根据角色跳转
+        fetch('/api/auth/me', {
           method: 'GET',
           headers: { 'Authorization': 'Basic ' + btoa(credentials) }
-        }).then(function(profileRes) {
-          if (profileRes.status === 403) {
-            // 管理员或教师角色
-            window.location.href = '/admin/index.html'; // 或者 /teacher/index.html
-          } else if (profileRes.status === 200) {
-            // 学生角色
+        }).then(function(res){
+          if (res.status === 200) {
+            return res.json();
+          } else {
+            throw new Error('认证失败');
+          }
+        }).then(function(userInfo) {
+          // 根据用户角色跳转到相应页面
+          const authorities = userInfo.role;
+          if (authorities.some(auth => auth.authority === 'ADMIN')) {
+            window.location.href = '/admin/index.html';
+          } else if (authorities.some(auth => auth.authority === 'TEACHER')) {
+            window.location.href = '/teacher/index.html';
+          } else if (authorities.some(auth => auth.authority === 'STUDENT')) {
             window.location.href = '/student/index.html';
           } else {
-            window.location.href = '/student/index.html';
+            window.location.href = '/index.html';
           }
-        }).catch(function() {
+        })
+                .catch(function() {
           window.location.href = '/student/index.html';
         });
       } else if (res.status === 401) {
