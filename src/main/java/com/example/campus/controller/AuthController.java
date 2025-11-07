@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import com.example.campus.dto.AdminRegisterRequest;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -38,6 +39,37 @@ public class AuthController {
         userRepository.save(u);
         return ResponseEntity.ok("注册成功");
     }
+
+    @PostMapping("/admin/register")
+    public ResponseEntity<?> adminRegister(@RequestBody AdminRegisterRequest req,
+                                           @AuthenticationPrincipal org.springframework.security.core.userdetails.User currentUser) {
+        // 验证当前用户权限（需要是管理员）
+        if (currentUser == null || !currentUser.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ADMIN"))) {
+            return ResponseEntity.status(403).body("权限不足");
+        }
+
+        // 检查用户名是否已存在
+        if (userRepository.findByUsername(req.getUsername()).isPresent()) {
+            return ResponseEntity.badRequest().body("用户名已存在");
+        }
+
+        User user = new User();
+        user.setUsername(req.getUsername());
+        user.setPassword(passwordEncoder.encode(req.getPassword()));
+        user.setRole(req.getRole()); // 可以指定角色
+        user.setEmail(req.getEmail());
+        user.setCreatedAt(Timestamp.from(Instant.now()));
+
+        // 如果是学生角色，还需要处理学生额外信息
+        if (req.getRole() == com.example.campus.entity.Role.STUDENT && req.getStudent() != null) {
+            // 处理学生信息保存逻辑
+        }
+
+        userRepository.save(user);
+        return ResponseEntity.ok("注册成功");
+    }
+
 
     @GetMapping("/me")
     public ResponseEntity<?> me(@AuthenticationPrincipal org.springframework.security.core.userdetails.User user) {
