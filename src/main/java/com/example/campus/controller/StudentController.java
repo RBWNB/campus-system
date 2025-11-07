@@ -42,6 +42,10 @@ public class StudentController {
             if (info.getUser().getName() != null && !info.getUser().getName().trim().isEmpty()) {
                 u.setName(info.getUser().getName());
             }
+            // 更新用户邮箱
+            if (info.getUser().getEmail() != null && !info.getUser().getEmail().trim().isEmpty()) {
+                u.setEmail(info.getUser().getEmail());
+            }
             // 保存用户信息到数据库
             userRepo.save(u);
         }
