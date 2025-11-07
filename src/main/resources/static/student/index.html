@@ -129,6 +129,55 @@
             console.log('用户已登录');
         }
     };
+    // 在每个页面的 window.onload 中添加权限检查
+    window.onload = function() {
+        const credentials = localStorage.getItem('credentials');
+        if (!credentials) {
+            window.location.href = '/login.html';
+            return;
+        }
+
+        // 获取当前用户信息
+        fetch('/api/auth/me', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(credentials)
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                const role = data.role[0].authority; // 获取用户角色
+
+                // 检查当前页面是否匹配用户权限
+                const currentPath = window.location.pathname;
+
+                // 学生只能访问学生相关页面
+                if (role === 'STUDENT') {
+                    const allowedPaths = ['/student/', '/announcements.html', '/index.html'];
+                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
+                        window.location.href = '/student/index.html';
+                    }
+                }
+
+                // 教师只能访问教师相关页面
+                if (role === 'TEACHER') {
+                    const allowedPaths = ['/teacher/', '/announcements.html', '/index.html'];
+                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
+                        window.location.href = '/teacher/index.html';
+                    }
+                }
+
+                // 管理员可以访问所有页面
+                if (role === 'ADMIN') {
+                    // 不做限制
+                }
+            })
+            .catch(error => {
+                console.error('获取用户信息失败:', error);
+                window.location.href = '/login.html';
+            });
+    };
+
 </script>
 </body>
 </html>
