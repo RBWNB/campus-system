@@ -4,49 +4,194 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>教师工作台 - 学工管理系统</title>
+    <title>学工管理系统 - 教师工作台</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="/css/style.css" rel="stylesheet">
 </head>
 <body>
-<div class="header">
-  <h1>学工管理系统 - 教师工作台</h1>
-</div>
-<div class="container">
-    <div class="section">
-        <h3>公告栏</h3>
-        <div id="announcementList"></div>
+<!-- 导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-info shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="#">
+            <i class="fas fa-graduation-cap me-2"></i>学工管理系统
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" href="/teacher/index.html">
+                        <i class="fas fa-home me-1"></i>首页
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/teacher/schedule.html">
+                        <i class="fas fa-calendar-alt me-1"></i>课程安排
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/teacher/grades.html">
+                        <i class="fas fa-chart-bar me-1"></i>成绩管理
+                    </a>
+                </li>
+            </ul>
+            <div class="navbar-nav">
+                <a class="nav-link text-white" href="/announcements.html">
+                    <i class="fas fa-bullhorn me-1"></i>公告查看
+                </a>
+                <a class="nav-link text-white" href="#" onclick="logout()">
+                    <i class="fas fa-sign-out-alt me-1"></i>登出账号
+                </a>
+            </div>
+        </div>
     </div>
-</div>
-<div class="container">
-  <div class="nav">
-    <a href="/teacher/index.html">首页</a> |
-    <a href="/teacher/schedule.html">课程安排</a> |
-    <a href="/teacher/grades.html">成绩管理</a> |
-    <a href="#" onclick="logout()">登出账号</a>
-  </div>
+</nav>
 
-  <h2 style="text-align: center; color: #2c3e50;">欢迎使用教师工作台</h2>
-  <p style="text-align: center;">请选择您要使用的功能模块</p>
+<!-- 页面内容 -->
+<div class="container my-4">
+    <!-- 欢迎横幅 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="p-4 bg-gradient-info text-white rounded-3 shadow-sm">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h1 class="display-6 fw-bold mb-2">教师工作台</h1>
+                        <p class="mb-0">欢迎使用学工管理系统，请选择您要使用的功能模块</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-chalkboard-teacher fa-3x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-  <div class="features">
-    <div class="feature-card">
-      <h3>课程安排</h3>
-      <p>查看个人授课安排和教室分配情况</p>
-      <a href="/teacher/schedule.html" class="btn">查看课表</a>
+    <!-- 公告栏 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light py-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bullhorn text-info me-2"></i>公告栏
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="announcementList"></div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="feature-card">
-      <h3>成绩管理</h3>
-      <p>录入和管理学生成绩信息</p>
-      <a href="/teacher/grades.html" class="btn">成绩管理</a>
+
+    <!-- 功能卡片 -->
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 feature-card shadow-sm border-0">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-calendar-alt fa-3x text-primary"></i>
+                    </div>
+                    <h4 class="card-title">课程安排</h4>
+                    <p class="card-text text-muted">查看个人授课安排和教室分配情况</p>
+                    <a href="/teacher/schedule.html" class="btn btn-primary btn-custom mt-auto">
+                        <i class="fas fa-arrow-right me-1"></i>查看课表
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 feature-card shadow-sm border-0">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-chart-bar fa-3x text-success"></i>
+                    </div>
+                    <h4 class="card-title">成绩管理</h4>
+                    <p class="card-text text-muted">录入和管理学生成绩信息</p>
+                    <a href="/teacher/grades.html" class="btn btn-success btn-custom mt-auto">
+                        <i class="fas fa-arrow-right me-1"></i>成绩管理
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 feature-card shadow-sm border-0">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-bullhorn fa-3x text-info"></i>
+                    </div>
+                    <h4 class="card-title">公告查看</h4>
+                    <p class="card-text text-muted">查看学校发布的最新公告</p>
+                    <a href="/announcements.html" class="btn btn-info btn-custom mt-auto">
+                        <i class="fas fa-arrow-right me-1"></i>查看公告
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 feature-card shadow-sm border-0">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-users fa-3x text-warning"></i>
+                    </div>
+                    <h4 class="card-title">学生名单</h4>
+                    <p class="card-text text-muted">查看所授课程的学生名单</p>
+                    <a href="/teacher/students.html" class="btn btn-warning btn-custom mt-auto">
+                        <i class="fas fa-arrow-right me-1"></i>查看名单
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 feature-card shadow-sm border-0">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-tasks fa-3x text-danger"></i>
+                    </div>
+                    <h4 class="card-title">教学任务</h4>
+                    <p class="card-text text-muted">查看和管理教学任务安排</p>
+                    <a href="/teacher/tasks.html" class="btn btn-danger btn-custom mt-auto">
+                        <i class="fas fa-arrow-right me-1"></i>查看任务
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 feature-card shadow-sm border-0">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-file-alt fa-3x text-secondary"></i>
+                    </div>
+                    <h4 class="card-title">教学材料</h4>
+                    <p class="card-text text-muted">上传和管理课程教学材料</p>
+                    <a href="/teacher/materials.html" class="btn btn-secondary btn-custom mt-auto">
+                        <i class="fas fa-arrow-right me-1"></i>管理材料
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="feature-card">
-      <h3>公告查看</h3>
-      <p>查看学校发布的最新公告</p>
-      <a href="/announcements.html" class="btn">查看公告</a>
-    </div>
-  </div>
 </div>
+
+<!-- 页脚 -->
+<footer class="bg-dark text-white py-4 mt-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h5>学工管理系统 - 教师端</h5>
+                <p class="mb-0">为教师提供便捷的教学管理工具</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <p class="mb-0">&copy; 2023 学工管理系统. 保留所有权利.</p>
+            </div>
+        </div>
+    </div>
+</footer>
 
 <script>
     //公告栏

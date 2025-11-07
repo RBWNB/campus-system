@@ -4,67 +4,211 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>管理员面板 - 学工管理系统</title>
+    <title>学工管理系统 - 管理员面板</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="/css/style.css" rel="stylesheet">
 </head>
 <body>
-<div class="header">
-  <h1>学工管理系统 - 管理员面板</h1>
-</div>
-<div class="container">
-    <div class="section">
-        <h3>公告栏</h3>
-        <div id="announcementList"></div>
+<!-- 导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="#">
+            <i class="fas fa-graduation-cap me-2"></i>学工管理系统
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" href="/admin/index.html">
+                        <i class="fas fa-home me-1"></i>首页
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/students.html">
+                        <i class="fas fa-user-graduate me-1"></i>学生管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/courses.html">
+                        <i class="fas fa-book me-1"></i>课程管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/classrooms.html">
+                        <i class="fas fa-building me-1"></i>教室管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/schedule.html">
+                        <i class="fas fa-calendar-alt me-1"></i>排课管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/announcements.html">
+                        <i class="fas fa-bullhorn me-1"></i>公告管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/users.html">
+                        <i class="fas fa-users me-1"></i>用户管理
+                    </a>
+                </li>
+            </ul>
+            <div class="navbar-nav">
+                <a class="nav-link text-white" href="#" onclick="logout()">
+                    <i class="fas fa-sign-out-alt me-1"></i>退出
+                </a>
+            </div>
+        </div>
     </div>
-</div>
-<div class="container">
-  <div class="nav">
-    <a href="/admin/index.html">首页</a> |
-    <a href="/admin/students.html">学生管理</a> |
-    <a href="/admin/courses.html">课程管理</a> |
-    <a href="/admin/classrooms.html">教室管理</a> |
-    <a href="/admin/schedule.html">排课管理</a> |
-    <a href="/admin/announcements.html">公告管理</a> |
-    <a href="#" onclick="logout()">退出</a>
-  </div>
+</nav>
 
-  <h2 style="text-align: center; color: #2c3e50;">欢迎使用管理员面板</h2>
-  <p style="text-align: center;">请选择您要管理的功能模块</p>
+<!-- 页面内容 -->
+<div class="container my-4">
+    <!-- 欢迎横幅 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="p-4 bg-gradient-primary text-white rounded-3 shadow-sm">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h1 class="display-6 fw-bold mb-2">管理员面板</h1>
+                        <p class="mb-0">欢迎使用学工管理系统，请选择您要管理的功能模块</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-cogs fa-3x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-  <div class="features">
-    <div class="feature-card">
-      <h3>学生管理</h3>
-      <p>管理学生基本信息和账户</p>
-      <a href="/admin/students.html" class="btn">学生管理</a>
+    <!-- 公告栏 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light py-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bullhorn text-primary me-2"></i>公告栏
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="announcementList"></div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="feature-card">
-      <h3>课程管理</h3>
-      <p>管理课程信息和设置</p>
-      <a href="/admin/courses.html" class="btn">课程管理</a>
+
+    <!-- 功能卡片 -->
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 feature-card shadow-sm border-0">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-user-graduate fa-3x text-primary"></i>
+                    </div>
+                    <h4 class="card-title">学生管理</h4>
+                    <p class="card-text text-muted">管理学生基本信息和账户</p>
+                    <a href="/admin/students.html" class="btn btn-primary btn-custom mt-auto">
+                        <i class="fas fa-arrow-right me-1"></i>进入管理
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 feature-card shadow-sm border-0">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-book fa-3x text-success"></i>
+                    </div>
+                    <h4 class="card-title">课程管理</h4>
+                    <p class="card-text text-muted">管理课程信息和设置</p>
+                    <a href="/admin/courses.html" class="btn btn-success btn-custom mt-auto">
+                        <i class="fas fa-arrow-right me-1"></i>进入管理
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 feature-card shadow-sm border-0">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-building fa-3x text-info"></i>
+                    </div>
+                    <h4 class="card-title">教室管理</h4>
+                    <p class="card-text text-muted">管理教室资源和容量</p>
+                    <a href="/admin/classrooms.html" class="btn btn-info btn-custom mt-auto">
+                        <i class="fas fa-arrow-right me-1"></i>进入管理
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 feature-card shadow-sm border-0">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-calendar-alt fa-3x text-warning"></i>
+                    </div>
+                    <h4 class="card-title">排课管理</h4>
+                    <p class="card-text text-muted">安排课程时间和教室</p>
+                    <a href="/admin/schedule.html" class="btn btn-warning btn-custom mt-auto">
+                        <i class="fas fa-arrow-right me-1"></i>进入管理
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 feature-card shadow-sm border-0">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-bullhorn fa-3x text-danger"></i>
+                    </div>
+                    <h4 class="card-title">公告管理</h4>
+                    <p class="card-text text-muted">发布公告和重要通知</p>
+                    <a href="/admin/announcements.html" class="btn btn-danger btn-custom mt-auto">
+                        <i class="fas fa-arrow-right me-1"></i>进入管理
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 feature-card shadow-sm border-0">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon mb-3">
+                        <i class="fas fa-users fa-3x text-secondary"></i>
+                    </div>
+                    <h4 class="card-title">用户管理</h4>
+                    <p class="card-text text-muted">创建和管理各类用户账号</p>
+                    <a href="/admin/users.html" class="btn btn-secondary btn-custom mt-auto">
+                        <i class="fas fa-arrow-right me-1"></i>进入管理
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="feature-card">
-      <h3>教室管理</h3>
-      <p>管理教室资源和容量</p>
-      <a href="/admin/classrooms.html" class="btn">教室管理</a>
-    </div>
-    <div class="feature-card">
-      <h3>排课管理</h3>
-      <p>安排课程时间和教室</p>
-      <a href="/admin/schedule.html" class="btn">排课管理</a>
-    </div>
-    <div class="feature-card">
-      <h3>公告管理</h3>
-      <p>发布公告和重要通知</p>
-      <a href="/admin/announcements.html" class="btn">公告管理</a>
-    </div>
-    <div class="feature-card">
-      <h3>用户管理</h3>
-      <p>创建和管理各类用户账号</p>
-      <a href="/admin/users.html" class="btn">用户管理</a>
-    </div>
-  </div>
 </div>
+
+<!-- 页脚 -->
+<footer class="bg-dark text-white py-4 mt-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h5>学工管理系统</h5>
+                <p class="mb-0">高效、便捷的学校管理解决方案</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <p class="mb-0">&copy; 2023 学工管理系统. 保留所有权利.</p>
+            </div>
+        </div>
+    </div>
+</footer>
 
 <script>
     //公告栏
