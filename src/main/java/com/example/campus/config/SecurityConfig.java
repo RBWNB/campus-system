@@ -18,12 +18,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private UserDetailsServiceImpl userDetailsService;
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder(){ //密码加密器，加密方式使用 BCrypt
         return new BCryptPasswordEncoder();
     }
 
     @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception { //身份验证器，绑定了数据库用户认证逻辑
         auth.userDetailsService(userDetailsService)
                 .passwordEncoder(passwordEncoder());
     }
