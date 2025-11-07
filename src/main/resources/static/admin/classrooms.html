@@ -1,10 +1,10 @@
-<!-- src/main/resources/static/admin/users.html -->
+<!-- src/main/resources/static/admin/classrooms.html -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>用户管理 - 学工管理系统</title>
+    <title>教室管理 - 学工管理系统</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="/css/style.css" rel="stylesheet">
@@ -37,7 +37,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/admin/classrooms.html">
+                    <a class="nav-link active" href="/admin/classrooms.html">
                         <i class="fas fa-building me-1"></i>教室管理
                     </a>
                 </li>
@@ -52,7 +52,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active" href="/admin/users.html">
+                    <a class="nav-link" href="/admin/users.html">
                         <i class="fas fa-users me-1"></i>用户管理
                     </a>
                 </li>
@@ -74,11 +74,11 @@
             <div class="p-4 bg-gradient-primary text-white rounded-3 shadow-sm">
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1">
-                        <h1 class="display-6 fw-bold mb-2">用户管理</h1>
-                        <p class="mb-0">管理系统中的用户账户</p>
+                        <h1 class="display-6 fw-bold mb-2">教室管理</h1>
+                        <p class="mb-0">管理系统中的教室资源</p>
                     </div>
                     <div class="flex-shrink-0">
-                        <i class="fas fa-users fa-3x opacity-75"></i>
+                        <i class="fas fa-building fa-3x opacity-75"></i>
                     </div>
                 </div>
             </div>
@@ -88,36 +88,34 @@
     <div class="card shadow-sm border-0">
         <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
             <h5 class="card-title mb-0">
-                <i class="fas fa-users text-primary me-2"></i>用户列表
+                <i class="fas fa-building text-primary me-2"></i>教室列表
             </h5>
             <button class="btn btn-success" onclick="openAddModal()">
-                <i class="fas fa-plus me-1"></i>添加用户
+                <i class="fas fa-plus me-1"></i>添加教室
             </button>
         </div>
         <div class="card-body">
             <div class="mb-3">
                 <div class="input-group">
-                    <input type="text" id="searchInput" class="form-control" placeholder="输入用户名或姓名进行搜索">
-                    <button class="btn btn-outline-primary" onclick="searchUsers()">
+                    <input type="text" id="searchInput" class="form-control" placeholder="输入教室名称或位置进行搜索">
+                    <button class="btn btn-outline-primary" onclick="searchClassrooms()">
                         <i class="fas fa-search"></i> 搜索
                     </button>
                 </div>
             </div>
 
             <div class="table-responsive">
-                <table class="table table-hover" id="usersTable">
+                <table class="table table-hover" id="classroomsTable">
                     <thead>
                     <tr>
-                        <th>用户名</th>
-                        <th>姓名</th>
-                        <th>邮箱</th>
-                        <th>角色</th>
-                        <th>创建时间</th>
+                        <th>教室名称</th>
+                        <th>位置</th>
+                        <th>容量</th>
                         <th>操作</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <!-- 用户数据将通过JavaScript动态填充 -->
+                    <!-- 教室数据将通过JavaScript动态填充 -->
                     </tbody>
                 </table>
             </div>
@@ -125,71 +123,58 @@
     </div>
 </div>
 
-<!-- 添加/编辑用户模态框 -->
-<div class="modal fade" id="userModal" tabindex="-1">
+<!-- 添加/编辑教室模态框 -->
+<div class="modal fade" id="classroomModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalTitle">添加用户</h5>
+                <h5 class="modal-title" id="modalTitle">添加教室</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="userForm">
-                    <input type="hidden" id="userId">
+                <form id="classroomForm">
+                    <input type="hidden" id="classroomId">
 
                     <div class="mb-3">
-                        <label for="username" class="form-label">用户名:</label>
-                        <input type="text" class="form-control" id="username" required>
+                        <label for="name" class="form-label">教室名称:</label>
+                        <input type="text" class="form-control" id="name" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="name" class="form-label">姓名:</label>
-                        <input type="text" class="form-control" id="name">
+                        <label for="location" class="form-label">位置:</label>
+                        <input type="text" class="form-control" id="location">
                     </div>
 
                     <div class="mb-3">
-                        <label for="email" class="form-label">邮箱:</label>
-                        <input type="email" class="form-control" id="email">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="password" class="form-label">密码:</label>
-                        <input type="password" class="form-control" id="password" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="role" class="form-label">角色:</label>
-                        <select class="form-select" id="role" required>
-                            <option value="ADMIN">管理员</option>
-                            <option value="TEACHER">教师</option>
-                            <option value="STUDENT">学生</option>
-                        </select>
+                        <label for="capacity" class="form-label">容量:</label>
+                        <input type="number" class="form-control" id="capacity" min="1">
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" onclick="saveUser()">保存</button>
+                <button type="button" class="btn btn-primary" onclick="saveClassroom()">保存</button>
             </div>
         </div>
     </div>
 </div>
 
+
 <script>
-    // 页面加载时获取所有用户信息
+    // 页面加载时获取所有教室信息
     window.onload = function() {
-        loadUsers();
+        loadClassrooms();
 
         // 表单提交事件
-        document.getElementById('userForm').addEventListener('submit', function(e) {
+        document.getElementById('classroomForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            saveUser();
+            saveClassroom();
         });
     };
 
-    // 加载用户信息
-    function loadUsers(query = '') {
-        const url = query ? `/api/admin/users?q=${encodeURIComponent(query)}` : '/api/admin/users';
+    // 加载教室信息
+    function loadClassrooms(query = '') {
+        const url = query ? `/api/admin/classrooms?q=${encodeURIComponent(query)}` : '/api/admin/classrooms';
 
         fetch(url, {
             method: 'GET',
@@ -199,28 +184,21 @@
         })
             .then(response => response.json())
             .then(data => {
-                const tbody = document.querySelector('#usersTable tbody');
+                const tbody = document.querySelector('#classroomsTable tbody');
                 tbody.innerHTML = '';
 
                 if (data && data.length > 0) {
-                    data.forEach(user => {
-                        const roleMap = {
-                            'ADMIN': '管理员',
-                            'STUDENT': '学生'
-                        };
-
+                    data.forEach(classroom => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
-                        <td>${user.username || ''}</td>
-                        <td>${user.name || ''}</td>
-                        <td>${user.email || ''}</td>
-                        <td>${roleMap[user.role] || user.role || ''}</td>
-                        <td>${user.createdAt ? new Date(user.createdAt).toLocaleString() : ''}</td>
+                        <td>${classroom.name || ''}</td>
+                        <td>${classroom.location || ''}</td>
+                        <td>${classroom.capacity || ''}</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary me-1" onclick="editUser(${user.id})">
+                            <button class="btn btn-sm btn-outline-primary me-1" onclick="editClassroom(${classroom.id})">
                                 <i class="fas fa-edit"></i> 编辑
                             </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteUser(${user.id})">
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteClassroom(${classroom.id})">
                                 <i class="fas fa-trash"></i> 删除
                             </button>
                         </td>
@@ -229,59 +207,57 @@
                     });
                 } else {
                     const row = document.createElement('tr');
-                    row.innerHTML = '<td colspan="6" class="text-center">暂无用户信息</td>';
+                    row.innerHTML = '<td colspan="4" class="text-center">暂无教室信息</td>';
                     tbody.appendChild(row);
                 }
             })
             .catch(error => {
-                console.error('获取用户信息失败:', error);
+                console.error('获取教室信息失败:', error);
             });
     }
 
-    // 搜索用户
-    function searchUsers() {
+    // 搜索教室
+    function searchClassrooms() {
         const query = document.getElementById('searchInput').value;
-        loadUsers(query);
+        loadClassrooms(query);
     }
 
-    // 打开添加用户模态框
+    // 打开添加教室模态框
     function openAddModal() {
-        document.getElementById('modalTitle').textContent = '添加用户';
-        document.getElementById('userForm').reset();
-        document.getElementById('userId').value = '';
-        new bootstrap.Modal(document.getElementById('userModal')).show();
+        document.getElementById('modalTitle').textContent = '添加教室';
+        document.getElementById('classroomForm').reset();
+        document.getElementById('classroomId').value = '';
+        new bootstrap.Modal(document.getElementById('classroomModal')).show();
     }
 
-    // 编辑用户
-    function editUser(userId) {
-        // 获取用户详细信息并填充到表单中
-        fetch(`/api/admin/users/${userId}`, {
+    // 编辑教室
+    function editClassroom(classroomId) {
+        // 获取教室详细信息并填充到表单中
+        fetch(`/api/admin/classrooms/${classroomId}`, {
             method: 'GET',
             headers: {
                 'Authorization': 'Basic ' + btoa(getCredentials())
             }
         })
             .then(response => response.json())
-            .then(user => {
-                document.getElementById('modalTitle').textContent = '编辑用户';
-                document.getElementById('userId').value = user.id;
-                document.getElementById('username').value = user.username || '';
-                document.getElementById('name').value = user.name || '';
-                document.getElementById('email').value = user.email || '';
-                document.getElementById('password').value = ''; // 不显示密码
-                document.getElementById('role').value = user.role || '';
-                new bootstrap.Modal(document.getElementById('userModal')).show();
+            .then(classroom => {
+                document.getElementById('modalTitle').textContent = '编辑教室';
+                document.getElementById('classroomId').value = classroom.id;
+                document.getElementById('name').value = classroom.name || '';
+                document.getElementById('location').value = classroom.location || '';
+                document.getElementById('capacity').value = classroom.capacity || '';
+                new bootstrap.Modal(document.getElementById('classroomModal')).show();
             })
             .catch(error => {
-                console.error('获取用户信息失败:', error);
+                console.error('获取教室信息失败:', error);
             });
     }
 
-    // 删除用户
-    function deleteUser(userId) {
-        if (confirm('确定要删除这个用户吗？')) {
-            // 调用API删除用户
-            fetch(`/api/admin/users/${userId}`, {
+    // 删除教室
+    function deleteClassroom(classroomId) {
+        if (confirm('确定要删除这个教室吗？')) {
+            // 调用API删除教室
+            fetch(`/api/admin/classrooms/${classroomId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': 'Basic ' + btoa(getCredentials())
@@ -289,32 +265,30 @@
             })
                 .then(response => {
                     if (response.ok) {
-                        alert('用户删除成功');
-                        loadUsers(); // 重新加载用户列表
+                        alert('教室删除成功');
+                        loadClassrooms(); // 重新加载教室列表
                     } else {
-                        alert('用户删除失败');
+                        alert('教室删除失败');
                     }
                 })
                 .catch(error => {
-                    console.error('删除用户失败:', error);
-                    alert('删除用户失败');
+                    console.error('删除教室失败:', error);
+                    alert('删除教室失败');
                 });
         }
     }
 
-    // 保存用户信息
-    function saveUser() {
-        const userId = document.getElementById('userId').value;
-        const userData = {
-            username: document.getElementById('username').value,
+    // 保存教室信息
+    function saveClassroom() {
+        const classroomId = document.getElementById('classroomId').value;
+        const classroomData = {
             name: document.getElementById('name').value,
-            email: document.getElementById('email').value,
-            password: document.getElementById('password').value,
-            role: document.getElementById('role').value
+            location: document.getElementById('location').value,
+            capacity: parseInt(document.getElementById('capacity').value) || 0
         };
 
-        const method = userId ? 'PUT' : 'POST';
-        const url = userId ? `/api/admin/users/${userId}` : '/api/admin/users';
+        const method = classroomId ? 'PUT' : 'POST';
+        const url = classroomId ? `/api/admin/classrooms/${classroomId}` : '/api/admin/classrooms';
 
         fetch(url, {
             method: method,
@@ -322,20 +296,20 @@
                 'Content-Type': 'application/json',
                 'Authorization': 'Basic ' + btoa(getCredentials())
             },
-            body: JSON.stringify(userData)
+            body: JSON.stringify(classroomData)
         })
             .then(response => {
                 if (response.ok) {
-                    alert('用户信息保存成功');
-                    bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
-                    loadUsers(); // 重新加载用户列表
+                    alert('教室信息保存成功');
+                    bootstrap.Modal.getInstance(document.getElementById('classroomModal')).hide();
+                    loadClassrooms(); // 重新加载教室列表
                 } else {
-                    alert('用户信息保存失败');
+                    alert('教室信息保存失败');
                 }
             })
             .catch(error => {
-                console.error('保存用户信息失败:', error);
-                alert('保存用户信息失败');
+                console.error('保存教室信息失败:', error);
+                alert('保存教室信息失败');
             });
     }
 
@@ -353,7 +327,7 @@
     // 回车搜索
     document.getElementById('searchInput').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
-            searchUsers();
+            searchClassrooms();
         }
     });
 

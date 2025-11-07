@@ -2,255 +2,327 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>请假申请 - 学工管理系统</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      background-color: #f5f5f5;
-    }
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    .form-group {
-      margin-bottom: 15px;
-    }
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-    input, select, textarea {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      box-sizing: border-box;
-    }
-    button {
-      background-color: #007bff;
-      color: white;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 30px;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 12px;
-      text-align: left;
-    }
-    th {
-      background-color: #f2f2f2;
-    }
-    .nav {
-      margin-bottom: 20px;
-    }
-    .nav a {
-      margin-right: 10px;
-      text-decoration: none;
-      color: #007bff;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>请假申请 - 学工管理系统</title>
+    <!-- 引入 Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 引入 Font Awesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 引入我们统一的 style.css -->
+    <link href="/css/style.css" rel="stylesheet">
+    <!-- Optional: Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        /* 移除原有的内联样式，完全依赖 style.css 和 Bootstrap */
+        /* 确保 Bootstrap 的 form-control 类能正常应用 */
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-    <div class="nav">
-        <a href="/student/index.html">首页</a> |
-        <a href="/student/profile.html">个人信息</a> |
-        <a href="/student/grades.html">成绩查询</a> |
-        <a href="/student/courses.html">课程查询</a> |
-        <a href="/student/leaves.html">请假申请</a> |
-        <a href="/announcements.html">公告查看</a> |
-        <a href="#" onclick="logout()">退出</a>
+<!-- 统一的导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-warning shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="#">
+            <i class="fas fa-exclamation-triangle me-2"></i>请假管理
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/student/index.html">
+                        <i class="fas fa-home me-1"></i>首页
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/student/profile.html">
+                        <i class="fas fa-user me-1"></i>个人信息
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/student/grades.html">
+                        <i class="fas fa-chart-bar me-1"></i>成绩查询
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/student/courses.html">
+                        <i class="fas fa-book me-1"></i>课程查询
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <!-- 激活当前页面链接 -->
+                    <a class="nav-link active" href="/student/leaves.html">
+                        <i class="fas fa-calendar-minus me-1"></i>请假申请
+                    </a>
+                </li>
+            </ul>
+            <div class="navbar-nav">
+                <a class="nav-link text-white" href="/announcements.html">
+                    <i class="fas fa-bullhorn me-1"></i>公告查看
+                </a>
+                <a class="nav-link text-white" href="#" onclick="logout()">
+                    <i class="fas fa-sign-out-alt me-1"></i>登出账号
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container my-4">
+    <!-- 页面标题区域，模仿首页的欢迎横幅 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="p-4 bg-gradient-warning text-white rounded-3 shadow-sm">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h1 class="display-6 fw-bold mb-2">请假申请</h1>
+                        <p class="mb-0">填写请假信息，并查看申请记录</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-edit fa-3x opacity-75"></i> <!-- 使用style.css中的opacity-75 -->
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-  <h2>请假申请</h2>
+    <!-- 内容区域 -->
+    <div class="row">
+        <div class="col-12">
+            <!-- 请假申请表单，使用card包裹 -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-light py-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-edit text-warning me-2"></i>填写请假申请
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- 使用Bootstrap的grid系统组织表单 -->
+                    <form id="leaveForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="startDate" class="form-label">开始日期:</label>
+                                <input type="date" id="startDate" name="startDate" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="endDate" class="form-label">结束日期:</label>
+                                <input type="date" id="endDate" name="endDate" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label for="reason" class="form-label">请假原因:</label>
+                            <textarea id="reason" name="reason" rows="4" class="form-control" required></textarea>
+                        </div>
+                        <div class="mt-3 text-end">
+                            <!-- 使用style.css中的btn-custom，并结合Bootstrap颜色类 -->
+                            <button type="submit" class="btn btn-warning btn-custom">
+                                <i class="fas fa-paper-plane me-1"></i> 提交申请
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
 
-  <form id="leaveForm">
-    <div class="form-group">
-      <label for="startDate">开始日期:</label>
-      <input type="date" id="startDate" name="startDate" required>
+            <!-- 请假记录表格，使用card包裹 -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light py-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list-alt text-warning me-2"></i>我的请假记录
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- 使用Bootstrap的table类，并添加hover和align-middle -->
+                    <div class="table-responsive">
+                        <table id="leavesTable" class="table table-hover align-middle">
+                            <thead>
+                            <tr>
+                                <th>开始日期</th>
+                                <th>结束日期</th>
+                                <th>原因</th>
+                                <th>状态</th>
+                                <th>申请时间</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- 请假记录将通过JavaScript动态填充 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <div class="form-group">
-      <label for="endDate">结束日期:</label>
-      <input type="date" id="endDate" name="endDate" required>
-    </div>
-
-    <div class="form-group">
-      <label for="reason">请假原因:</label>
-      <textarea id="reason" name="reason" rows="4" required></textarea>
-    </div>
-
-    <button type="submit">提交申请</button>
-  </form>
-
-  <h3 style="margin-top: 30px;">我的请假记录</h3>
-
-  <table id="leavesTable">
-    <thead>
-    <tr>
-      <th>开始日期</th>
-      <th>结束日期</th>
-      <th>原因</th>
-      <th>状态</th>
-      <th>申请时间</th>
-    </tr>
-    </thead>
-    <tbody>
-    <!-- 请假记录将通过JavaScript动态填充 -->
-    </tbody>
-  </table>
 </div>
 
 <script>
-  // 页面加载时获取请假记录
-  window.onload = function() {
-    loadLeaveRecords();
-  };
+    // 获取存储的凭据
+    function getCredentials() {
+        return localStorage.getItem('credentials') || '';
+    }
 
-  // 提交请假申请
-  document.getElementById('leaveForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+    // 退出登录
+    function logout() {
+        localStorage.removeItem('credentials');
+        window.location.href = '/login.html';
+    }
 
-    const leaveData = {
-      startDate: document.getElementById('startDate').value,
-      endDate: document.getElementById('endDate').value,
-      reason: document.getElementById('reason').value
-    };
+    // 提交请假申请
+    document.getElementById('leaveForm').addEventListener('submit', function(e) {
+        e.preventDefault();
 
-    fetch('/api/student/leaves', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Basic ' + btoa(getCredentials())
-      },
-      body: JSON.stringify(leaveData)
-    })
-            .then(response => response.json())
+        const leaveData = {
+            startDate: document.getElementById('startDate').value,
+            endDate: document.getElementById('endDate').value,
+            reason: document.getElementById('reason').value
+        };
+
+        fetch('/api/student/leaves', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + btoa(getCredentials())
+            },
+            body: JSON.stringify(leaveData)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/login.html';
+                    }
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
-              alert('请假申请提交成功');
-              document.getElementById('leaveForm').reset();
-              loadLeaveRecords(); // 重新加载请假记录
+                alert('请假申请提交成功');
+                document.getElementById('leaveForm').reset();
+                loadLeaveRecords(); // 重新加载请假记录
             })
             .catch(error => {
-              console.error('提交失败:', error);
-              alert('提交失败');
+                console.error('提交失败:', error);
+                alert('提交失败');
             });
-  });
+    });
 
-  // 加载请假记录
-  function loadLeaveRecords() {
-    fetch('/api/student/leaves', {
-      method: 'GET',
-      headers: {
-        'Authorization': 'Basic ' + btoa(getCredentials())
-      }
-    })
-            .then(response => response.json())
+    // 加载请假记录
+    function loadLeaveRecords() {
+        fetch('/api/student/leaves', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(getCredentials())
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/login.html';
+                    }
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
-              const tbody = document.querySelector('#leavesTable tbody');
-              tbody.innerHTML = '';
+                const tbody = document.querySelector('#leavesTable tbody');
+                tbody.innerHTML = '';
 
-              if (data && data.length > 0) {
-                data.forEach(leave => {
-                  const row = document.createElement('tr');
-                  row.innerHTML = `
+                if (data && data.length > 0) {
+                    data.forEach(leave => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
                             <td>${leave.startDate || ''}</td>
                             <td>${leave.endDate || ''}</td>
                             <td>${leave.reason || ''}</td>
                             <td>${leave.status || ''}</td>
-                            <td>${leave.appliedAt || ''}</td>
+                            <td>${leave.appliedAt ? new Date(leave.appliedAt).toLocaleString() : ''}</td>
                         `;
-                  tbody.appendChild(row);
-                });
-              } else {
-                const row = document.createElement('tr');
-                row.innerHTML = '<td colspan="5">暂无请假记录</td>';
-                tbody.appendChild(row);
-              }
+                        tbody.appendChild(row);
+                    });
+                } else {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="5">暂无请假记录</td>';
+                    tbody.appendChild(row);
+                }
             })
             .catch(error => {
-              console.error('获取请假记录失败:', error);
+                console.error('获取请假记录失败:', error);
+                const tbody = document.querySelector('#leavesTable tbody');
+                tbody.innerHTML = '<tr><td colspan="5">加载请假记录失败，请稍后重试。</td></tr>';
             });
-  }
-
-  // 获取存储的凭据
-  function getCredentials() {
-    return localStorage.getItem('credentials') || '';
-  }
-
-  // 退出登录
-  function logout() {
-    localStorage.removeItem('credentials');
-    window.location.href = '/login.html';
-  }
-  // 在每个页面的 window.onload 中添加权限检查
-  window.onload = function() {
-    const credentials = localStorage.getItem('credentials');
-    if (!credentials) {
-      window.location.href = '/login.html';
-      return;
     }
 
-    // 获取当前用户信息
-    fetch('/api/auth/me', {
-      method: 'GET',
-      headers: {
-        'Authorization': 'Basic ' + btoa(credentials)
-      }
-    })
-            .then(response => response.json())
+    // 在每个页面的 window.onload 中添加权限检查
+    window.onload = function() {
+        const credentials = localStorage.getItem('credentials');
+        if (!credentials) {
+            window.location.href = '/login.html';
+            return;
+        }
+
+        // 获取当前用户信息，用于权限验证
+        fetch('/api/auth/me', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(credentials)
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/login.html'; // 未登录或token过期，跳转到登录页
+                    }
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
-              const role = data.role[0].authority; // 获取用户角色
+                const role = data.role[0].authority; // 获取用户角色
 
-              // 检查当前页面是否匹配用户权限
-              const currentPath = window.location.pathname;
+                const currentPath = window.location.pathname;
 
-              // 学生只能访问学生相关页面
-              if (role === 'STUDENT') {
-                const allowedPaths = ['/student/', '/announcements.html', '/index.html'];
-                if (!allowedPaths.some(path => currentPath.startsWith(path))) {
-                  window.location.href = '/student/index.html';
+                // 学生只能访问学生相关页面
+                if (role === 'STUDENT') {
+                    const allowedPaths = ['/student/', '/announcements.html', '/index.html'];
+                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
+                        window.location.href = '/student/index.html';
+                    }
                 }
-              }
 
-              // 教师只能访问教师相关页面
-              if (role === 'TEACHER') {
-                const allowedPaths = ['/teacher/', '/announcements.html', '/index.html'];
-                if (!allowedPaths.some(path => currentPath.startsWith(path))) {
-                  window.location.href = '/teacher/index.html';
+                // 教师只能访问教师相关页面
+                if (role === 'TEACHER') {
+                    const allowedPaths = ['/teacher/', '/announcements.html', '/index.html'];
+                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
+                        window.location.href = '/teacher/index.html';
+                    }
                 }
-              }
 
-              // 管理员可以访问所有页面
-              if (role === 'ADMIN') {
-                // 不做限制
-              }
+                // 管理员可以访问所有页面
+                if (role === 'ADMIN') {
+                    // 不做限制
+                }
+
+                // 加载请假记录
+                loadLeaveRecords();
             })
             .catch(error => {
-              console.error('获取用户信息失败:', error);
-              window.location.href = '/login.html';
+                console.error('获取用户信息失败:', error);
+                window.location.href = '/login.html'; // 获取用户信息失败，也跳转到登录页
             });
-  };
-
+    };
 </script>
+<!-- 引入 Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

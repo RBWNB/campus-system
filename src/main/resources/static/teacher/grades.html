@@ -5,193 +5,149 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>成绩管理 - 学工管理系统</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        .nav {
-            margin-bottom: 20px;
-        }
-        .nav a {
-            margin-right: 10px;
-            text-decoration: none;
-            color: #007bff;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input, select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .search-box {
-            margin-bottom: 20px;
-        }
-        .search-box input {
-            padding: 8px;
-            width: 300px;
-            margin-right: 10px;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgb(0,0,0);
-            background-color: rgba(0,0,0,0.4);
-        }
-        .modal-content {
-            background-color: #fefefe;
-            margin: 15% auto;
-            padding: 20px;
-            border: 1px solid #888;
-            width: 50%;
-            border-radius: 8px;
-        }
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="/css/style.css" rel="stylesheet">
 </head>
 <body>
-<div class="container">
-    <div class="nav">
-        <a href="/teacher/index.html">首页</a> |
-        <a href="/teacher/schedule.html">课程安排</a> |
-        <a href="/teacher/grades.html">成绩管理</a> |
-        <a href="/announcements.html">公告查看</a> |
-        <a href="#" onclick="logout()">退出</a>
+<!-- 导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-info shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="#">
+            <i class="fas fa-graduation-cap me-2"></i>学工管理系统
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/teacher/index.html">
+                        <i class="fas fa-home me-1"></i>首页
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/teacher/schedule.html">
+                        <i class="fas fa-calendar-alt me-1"></i>课程安排
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/teacher/grades.html">
+                        <i class="fas fa-chart-bar me-1"></i>成绩管理
+                    </a>
+                </li>
+            </ul>
+            <div class="navbar-nav">
+                <a class="nav-link text-white" href="/announcements.html">
+                    <i class="fas fa-bullhorn me-1"></i>公告查看
+                </a>
+                <a class="nav-link text-white" href="#" onclick="logout()">
+                    <i class="fas fa-sign-out-alt me-1"></i>登出账号
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- 页面内容 -->
+<div class="container my-4">
+    <!-- 欢迎横幅 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="p-4 bg-gradient-info text-white rounded-3 shadow-sm">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h1 class="display-6 fw-bold mb-2">成绩管理</h1>
+                        <p class="mb-0">录入和管理学生成绩信息</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-chart-bar fa-3x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <h2>成绩管理</h2>
-
-    <div class="search-box">
-        <input type="text" id="searchInput" placeholder="输入课程名称进行搜索">
-        <button onclick="searchCourses()">搜索</button>
-    </div>
-
-    <table id="coursesTable">
-        <thead>
-        <tr>
-            <th>课程代码</th>
-            <th>课程名称</th>
-            <th>学分</th>
-            <th>操作</th>
-        </tr>
-        </thead>
-        <tbody>
-        <!-- 课程数据将通过JavaScript动态填充 -->
-        </tbody>
-    </table>
-
-    <!-- 录入成绩模态框 -->
-    <div id="gradeModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h3>录入成绩 - <span id="modalCourseName"></span></h3>
-            <input type="hidden" id="selectedCourseId">
-
-            <div class="form-group">
-                <label for="studentSelect">选择学生:</label>
-                <select id="studentSelect"></select>
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-light py-3">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-book text-info me-2"></i>课程列表
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <div class="input-group">
+                    <input type="text" id="searchInput" class="form-control" placeholder="输入课程名称进行搜索">
+                    <button class="btn btn-outline-info" onclick="searchCourses()">
+                        <i class="fas fa-search"></i> 搜索
+                    </button>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="scoreInput">成绩:</label>
-                <input type="number" id="scoreInput" min="0" max="100" step="0.1">
+            <div class="table-responsive">
+                <table class="table table-hover" id="coursesTable">
+                    <thead>
+                    <tr>
+                        <th>课程代码</th>
+                        <th>课程名称</th>
+                        <th>学分</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- 课程数据将通过JavaScript动态填充 -->
+                    </tbody>
+                </table>
             </div>
-
-            <div class="form-group">
-                <label for="gradeTypeSelect">成绩类型:</label>
-                <select id="gradeTypeSelect">
-                    <option value="ORDINARY">平时成绩</option>
-                    <option value="MIDTERM">期中成绩</option>
-                    <option value="FINAL">期末成绩</option>
-                    <option value="TOTAL">总评成绩</option>
-                </select>
-            </div>
-
-            <button onclick="saveGrade()">保存成绩</button>
         </div>
     </div>
 </div>
+
+<!-- 录入成绩模态框 -->
+<div class="modal fade" id="gradeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">录入成绩 - <span id="modalCourseName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="selectedCourseId">
+
+                <div class="mb-3">
+                    <label for="studentSelect" class="form-label">选择学生:</label>
+                    <select class="form-select" id="studentSelect"></select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="scoreInput" class="form-label">成绩:</label>
+                    <input type="number" class="form-control" id="scoreInput" min="0" max="100" step="0.1">
+                </div>
+
+                <div class="mb-3">
+                    <label for="gradeTypeSelect" class="form-label">成绩类型:</label>
+                    <select class="form-select" id="gradeTypeSelect">
+                        <option value="ORDINARY">平时成绩</option>
+                        <option value="MIDTERM">期中成绩</option>
+                        <option value="FINAL">期末成绩</option>
+                        <option value="TOTAL">总评成绩</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveGrade()">保存成绩</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
 <script>
     // 页面加载时获取所有课程信息
     window.onload = function() {
         loadCourses();
-
-        // 获取模态框元素
-        const modal = document.getElementById("gradeModal");
-        const span = document.getElementsByClassName("close")[0];
-
-        // 点击关闭按钮关闭模态框
-        span.onclick = function() {
-            modal.style.display = "none";
-        }
-
-        // 点击模态框外部关闭它
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
-        }
     };
 
     // 加载课程信息
@@ -217,14 +173,16 @@
                         <td>${course.name || ''}</td>
                         <td>${course.credit || ''}</td>
                         <td>
-                            <button onclick="openGradeModal(${course.id}, '${course.name}')">录入成绩</button>
+                            <button class="btn btn-sm btn-outline-info" onclick="openGradeModal(${course.id}, '${course.name}')">
+                                <i class="fas fa-plus-circle me-1"></i>录入成绩
+                            </button>
                         </td>
                     `;
                         tbody.appendChild(row);
                     });
                 } else {
                     const row = document.createElement('tr');
-                    row.innerHTML = '<td colspan="4">暂无课程信息</td>';
+                    row.innerHTML = '<td colspan="4" class="text-center">暂无课程信息</td>';
                     tbody.appendChild(row);
                 }
             })
@@ -247,7 +205,7 @@
         // 加载该课程的学生列表
         loadStudentsForCourse(courseId);
 
-        document.getElementById("gradeModal").style.display = "block";
+        new bootstrap.Modal(document.getElementById('gradeModal')).show();
     }
 
     // 加载课程的学生列表
@@ -299,7 +257,7 @@
             .then(response => {
                 if (response.ok) {
                     alert('成绩保存成功');
-                    document.getElementById("gradeModal").style.display = "none";
+                    bootstrap.Modal.getInstance(document.getElementById('gradeModal')).hide();
                 } else {
                     alert('成绩保存失败');
                 }
@@ -327,7 +285,8 @@
             searchCourses();
         }
     });
-    // 在每个页面的 window.onload 中添加权限检查
+
+    // 权限检查
     window.onload = function() {
         const credentials = localStorage.getItem('credentials');
         if (!credentials) {
@@ -375,7 +334,7 @@
                 window.location.href = '/login.html';
             });
     };
-
 </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

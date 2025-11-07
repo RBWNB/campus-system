@@ -1,10 +1,10 @@
-<!-- src/main/resources/static/admin/users.html -->
+<!-- src/main/resources/static/admin/announcements.html -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>用户管理 - 学工管理系统</title>
+    <title>公告管理 - 学工管理系统</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="/css/style.css" rel="stylesheet">
@@ -47,12 +47,12 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/admin/announcements.html">
+                    <a class="nav-link active" href="/admin/announcements.html">
                         <i class="fas fa-bullhorn me-1"></i>公告管理
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active" href="/admin/users.html">
+                    <a class="nav-link" href="/admin/users.html">
                         <i class="fas fa-users me-1"></i>用户管理
                     </a>
                 </li>
@@ -74,11 +74,11 @@
             <div class="p-4 bg-gradient-primary text-white rounded-3 shadow-sm">
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1">
-                        <h1 class="display-6 fw-bold mb-2">用户管理</h1>
-                        <p class="mb-0">管理系统中的用户账户</p>
+                        <h1 class="display-6 fw-bold mb-2">公告管理</h1>
+                        <p class="mb-0">发布和管理系统公告</p>
                     </div>
                     <div class="flex-shrink-0">
-                        <i class="fas fa-users fa-3x opacity-75"></i>
+                        <i class="fas fa-bullhorn fa-3x opacity-75"></i>
                     </div>
                 </div>
             </div>
@@ -88,36 +88,26 @@
     <div class="card shadow-sm border-0">
         <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
             <h5 class="card-title mb-0">
-                <i class="fas fa-users text-primary me-2"></i>用户列表
+                <i class="fas fa-bullhorn text-primary me-2"></i>公告列表
             </h5>
             <button class="btn btn-success" onclick="openAddModal()">
-                <i class="fas fa-plus me-1"></i>添加用户
+                <i class="fas fa-plus me-1"></i>发布公告
             </button>
         </div>
         <div class="card-body">
-            <div class="mb-3">
-                <div class="input-group">
-                    <input type="text" id="searchInput" class="form-control" placeholder="输入用户名或姓名进行搜索">
-                    <button class="btn btn-outline-primary" onclick="searchUsers()">
-                        <i class="fas fa-search"></i> 搜索
-                    </button>
-                </div>
-            </div>
-
             <div class="table-responsive">
-                <table class="table table-hover" id="usersTable">
+                <table class="table table-hover" id="announcementsTable">
                     <thead>
                     <tr>
-                        <th>用户名</th>
-                        <th>姓名</th>
-                        <th>邮箱</th>
-                        <th>角色</th>
-                        <th>创建时间</th>
+                        <th>标题</th>
+                        <th>作者</th>
+                        <th>发布时间</th>
+                        <th>置顶</th>
                         <th>操作</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <!-- 用户数据将通过JavaScript动态填充 -->
+                    <!-- 公告数据将通过JavaScript动态填充 -->
                     </tbody>
                 </table>
             </div>
@@ -125,73 +115,64 @@
     </div>
 </div>
 
-<!-- 添加/编辑用户模态框 -->
-<div class="modal fade" id="userModal" tabindex="-1">
-    <div class="modal-dialog">
+<!-- 添加/编辑公告模态框 -->
+<div class="modal fade" id="announcementModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalTitle">添加用户</h5>
+                <h5 class="modal-title" id="modalTitle">发布公告</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="userForm">
-                    <input type="hidden" id="userId">
+                <form id="announcementForm">
+                    <input type="hidden" id="announcementId">
 
                     <div class="mb-3">
-                        <label for="username" class="form-label">用户名:</label>
-                        <input type="text" class="form-control" id="username" required>
+                        <label for="title" class="form-label">标题:</label>
+                        <input type="text" class="form-control" id="title" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="name" class="form-label">姓名:</label>
-                        <input type="text" class="form-control" id="name">
+                        <label for="author" class="form-label">作者:</label>
+                        <input type="text" class="form-control" id="author" required>
                     </div>
 
                     <div class="mb-3">
-                        <label for="email" class="form-label">邮箱:</label>
-                        <input type="email" class="form-control" id="email">
+                        <label for="content" class="form-label">内容:</label>
+                        <textarea class="form-control" id="content" rows="5" required></textarea>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="password" class="form-label">密码:</label>
-                        <input type="password" class="form-control" id="password" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="role" class="form-label">角色:</label>
-                        <select class="form-select" id="role" required>
-                            <option value="ADMIN">管理员</option>
-                            <option value="TEACHER">教师</option>
-                            <option value="STUDENT">学生</option>
-                        </select>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="pinned">
+                        <label class="form-check-label" for="pinned">
+                            置顶公告
+                        </label>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" onclick="saveUser()">保存</button>
+                <button type="button" class="btn btn-primary" onclick="saveAnnouncement()">保存</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // 页面加载时获取所有用户信息
+    // 页面加载时获取所有公告信息
     window.onload = function() {
-        loadUsers();
+        loadAnnouncements();
 
         // 表单提交事件
-        document.getElementById('userForm').addEventListener('submit', function(e) {
+        document.getElementById('announcementForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            saveUser();
+            saveAnnouncement();
         });
     };
 
-    // 加载用户信息
-    function loadUsers(query = '') {
-        const url = query ? `/api/admin/users?q=${encodeURIComponent(query)}` : '/api/admin/users';
-
-        fetch(url, {
+    // 加载公告信息
+    function loadAnnouncements() {
+        fetch('/api/announcements', {
             method: 'GET',
             headers: {
                 'Authorization': 'Basic ' + btoa(getCredentials())
@@ -199,28 +180,22 @@
         })
             .then(response => response.json())
             .then(data => {
-                const tbody = document.querySelector('#usersTable tbody');
+                const tbody = document.querySelector('#announcementsTable tbody');
                 tbody.innerHTML = '';
 
                 if (data && data.length > 0) {
-                    data.forEach(user => {
-                        const roleMap = {
-                            'ADMIN': '管理员',
-                            'STUDENT': '学生'
-                        };
-
+                    data.forEach(announcement => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
-                        <td>${user.username || ''}</td>
-                        <td>${user.name || ''}</td>
-                        <td>${user.email || ''}</td>
-                        <td>${roleMap[user.role] || user.role || ''}</td>
-                        <td>${user.createdAt ? new Date(user.createdAt).toLocaleString() : ''}</td>
+                        <td>${announcement.title || ''}</td>
+                        <td>${announcement.author || ''}</td>
+                        <td>${announcement.publishedAt ? new Date(announcement.publishedAt).toLocaleString() : ''}</td>
+                        <td>${announcement.pinned ? '<i class="fas fa-thumbtack text-danger"></i>' : ''}</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary me-1" onclick="editUser(${user.id})">
+                            <button class="btn btn-sm btn-outline-primary me-1" onclick="editAnnouncement(${announcement.id})">
                                 <i class="fas fa-edit"></i> 编辑
                             </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteUser(${user.id})">
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteAnnouncement(${announcement.id})">
                                 <i class="fas fa-trash"></i> 删除
                             </button>
                         </td>
@@ -229,59 +204,52 @@
                     });
                 } else {
                     const row = document.createElement('tr');
-                    row.innerHTML = '<td colspan="6" class="text-center">暂无用户信息</td>';
+                    row.innerHTML = '<td colspan="5" class="text-center">暂无公告信息</td>';
                     tbody.appendChild(row);
                 }
             })
             .catch(error => {
-                console.error('获取用户信息失败:', error);
+                console.error('获取公告信息失败:', error);
             });
     }
 
-    // 搜索用户
-    function searchUsers() {
-        const query = document.getElementById('searchInput').value;
-        loadUsers(query);
-    }
-
-    // 打开添加用户模态框
+    // 打开添加公告模态框
     function openAddModal() {
-        document.getElementById('modalTitle').textContent = '添加用户';
-        document.getElementById('userForm').reset();
-        document.getElementById('userId').value = '';
-        new bootstrap.Modal(document.getElementById('userModal')).show();
+        document.getElementById('modalTitle').textContent = '发布公告';
+        document.getElementById('announcementForm').reset();
+        document.getElementById('announcementId').value = '';
+        new bootstrap.Modal(document.getElementById('announcementModal')).show();
     }
 
-    // 编辑用户
-    function editUser(userId) {
-        // 获取用户详细信息并填充到表单中
-        fetch(`/api/admin/users/${userId}`, {
+    // 编辑公告
+    function editAnnouncement(announcementId) {
+        // 获取公告详细信息并填充到表单中
+        fetch(`/api/announcements/${announcementId}`, {
             method: 'GET',
             headers: {
                 'Authorization': 'Basic ' + btoa(getCredentials())
             }
         })
             .then(response => response.json())
-            .then(user => {
-                document.getElementById('modalTitle').textContent = '编辑用户';
-                document.getElementById('userId').value = user.id;
-                document.getElementById('username').value = user.username || '';
-                document.getElementById('name').value = user.name || '';
-                document.getElementById('email').value = user.email || '';
-                document.getElementById('password').value = ''; // 不显示密码
-                document.getElementById('role').value = user.role || '';
-                new bootstrap.Modal(document.getElementById('userModal')).show();
+            .then(announcement => {
+                document.getElementById('modalTitle').textContent = '编辑公告';
+                document.getElementById('announcementId').value = announcement.id;
+                document.getElementById('title').value = announcement.title || '';
+                document.getElementById('author').value = announcement.author || '';
+                document.getElementById('content').value = announcement.content || '';
+                document.getElementById('pinned').checked = announcement.pinned || false;
+                new bootstrap.Modal(document.getElementById('announcementModal')).show();
             })
             .catch(error => {
-                console.error('获取用户信息失败:', error);
+                console.error('获取公告信息失败:', error);
             });
     }
 
-    // 删除用户
-    function deleteUser(userId) {
-        if (confirm('确定要删除这个用户吗？')) {
-            // 调用API删除用户
-            fetch(`/api/admin/users/${userId}`, {
+    // 删除公告
+    function deleteAnnouncement(announcementId) {
+        if (confirm('确定要删除这个公告吗？')) {
+            // 调用API删除公告
+            fetch(`/api/announcements/${announcementId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': 'Basic ' + btoa(getCredentials())
@@ -289,32 +257,31 @@
             })
                 .then(response => {
                     if (response.ok) {
-                        alert('用户删除成功');
-                        loadUsers(); // 重新加载用户列表
+                        alert('公告删除成功');
+                        loadAnnouncements(); // 重新加载公告列表
                     } else {
-                        alert('用户删除失败');
+                        alert('公告删除失败');
                     }
                 })
                 .catch(error => {
-                    console.error('删除用户失败:', error);
-                    alert('删除用户失败');
+                    console.error('删除公告失败:', error);
+                    alert('删除公告失败');
                 });
         }
     }
 
-    // 保存用户信息
-    function saveUser() {
-        const userId = document.getElementById('userId').value;
-        const userData = {
-            username: document.getElementById('username').value,
-            name: document.getElementById('name').value,
-            email: document.getElementById('email').value,
-            password: document.getElementById('password').value,
-            role: document.getElementById('role').value
+    // 保存公告信息
+    function saveAnnouncement() {
+        const announcementId = document.getElementById('announcementId').value;
+        const announcementData = {
+            title: document.getElementById('title').value,
+            author: document.getElementById('author').value,
+            content: document.getElementById('content').value,
+            pinned: document.getElementById('pinned').checked
         };
 
-        const method = userId ? 'PUT' : 'POST';
-        const url = userId ? `/api/admin/users/${userId}` : '/api/admin/users';
+        const method = announcementId ? 'PUT' : 'POST';
+        const url = announcementId ? `/api/announcements/${announcementId}` : '/api/announcements';
 
         fetch(url, {
             method: method,
@@ -322,20 +289,20 @@
                 'Content-Type': 'application/json',
                 'Authorization': 'Basic ' + btoa(getCredentials())
             },
-            body: JSON.stringify(userData)
+            body: JSON.stringify(announcementData)
         })
             .then(response => {
                 if (response.ok) {
-                    alert('用户信息保存成功');
-                    bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
-                    loadUsers(); // 重新加载用户列表
+                    alert('公告信息保存成功');
+                    bootstrap.Modal.getInstance(document.getElementById('announcementModal')).hide();
+                    loadAnnouncements(); // 重新加载公告列表
                 } else {
-                    alert('用户信息保存失败');
+                    alert('公告信息保存失败');
                 }
             })
             .catch(error => {
-                console.error('保存用户信息失败:', error);
-                alert('保存用户信息失败');
+                console.error('保存公告信息失败:', error);
+                alert('保存公告信息失败');
             });
     }
 
@@ -349,13 +316,6 @@
         localStorage.removeItem('credentials');
         window.location.href = '/login.html';
     }
-
-    // 回车搜索
-    document.getElementById('searchInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            searchUsers();
-        }
-    });
 
     // 权限检查
     window.onload = function() {

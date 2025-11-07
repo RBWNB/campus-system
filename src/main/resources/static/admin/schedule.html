@@ -1,0 +1,514 @@
+<!-- src/main/resources/static/admin/schedule.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>排课管理 - 学工管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+<!-- 导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="#">
+            <i class="fas fa-graduation-cap me-2"></i>学工管理系统
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/index.html">
+                        <i class="fas fa-home me-1"></i>首页
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/students.html">
+                        <i class="fas fa-user-graduate me-1"></i>学生管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/courses.html">
+                        <i class="fas fa-book me-1"></i>课程管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/classrooms.html">
+                        <i class="fas fa-building me-1"></i>教室管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/admin/schedule.html">
+                        <i class="fas fa-calendar-alt me-1"></i>排课管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/announcements.html">
+                        <i class="fas fa-bullhorn me-1"></i>公告管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/users.html">
+                        <i class="fas fa-users me-1"></i>用户管理
+                    </a>
+                </li>
+            </ul>
+            <div class="navbar-nav">
+                <a class="nav-link text-white" href="#" onclick="logout()">
+                    <i class="fas fa-sign-out-alt me-1"></i>退出
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- 页面内容 -->
+<div class="container my-4">
+    <!-- 欢迎横幅 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="p-4 bg-gradient-primary text-white rounded-3 shadow-sm">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h1 class="display-6 fw-bold mb-2">排课管理</h1>
+                        <p class="mb-0">管理系统中的课程安排</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-calendar-alt fa-3x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-calendar-alt text-primary me-2"></i>课程安排
+            </h5>
+            <button class="btn btn-success" onclick="openAddModal()">
+                <i class="fas fa-plus me-1"></i>添加排课
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <div class="input-group">
+                    <input type="text" id="searchInput" class="form-control" placeholder="输入课程名称或教室名称进行搜索">
+                    <button class="btn btn-outline-primary" onclick="searchSchedules()">
+                        <i class="fas fa-search"></i> 搜索
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover" id="schedulesTable">
+                    <thead>
+                    <tr>
+                        <th>课程</th>
+                        <th>教室</th>
+                        <th>教师</th>
+                        <th>星期</th>
+                        <th>开始时间</th>
+                        <th>结束时间</th>
+                        <th>学期</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- 排课数据将通过JavaScript动态填充 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加/编辑排课模态框 -->
+<div class="modal fade" id="scheduleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">添加排课</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="scheduleForm">
+                    <input type="hidden" id="scheduleId">
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="courseId" class="form-label">课程:</label>
+                                <select class="form-select" id="courseId" required>
+                                    <option value="">请选择课程</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="classroomId" class="form-label">教室:</label>
+                                <select class="form-select" id="classroomId" required>
+                                    <option value="">请选择教室</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="teacher" class="form-label">教师:</label>
+                                <input type="text" class="form-control" id="teacher" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="weekday" class="form-label">星期:</label>
+                                <select class="form-select" id="weekday" required>
+                                    <option value="">请选择星期</option>
+                                    <option value="1">星期一</option>
+                                    <option value="2">星期二</option>
+                                    <option value="3">星期三</option>
+                                    <option value="4">星期四</option>
+                                    <option value="5">星期五</option>
+                                    <option value="6">星期六</option>
+                                    <option value="7">星期日</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="startTime" class="form-label">开始时间:</label>
+                                <input type="time" class="form-control" id="startTime" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="endTime" class="form-label">结束时间:</label>
+                                <input type="time" class="form-control" id="endTime" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="term" class="form-label">学期:</label>
+                        <input type="text" class="form-control" id="term">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveSchedule()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 页面加载时获取所有排课信息
+    window.onload = function() {
+        loadSchedules();
+        loadCourses();
+        loadClassrooms();
+
+        // 表单提交事件
+        document.getElementById('scheduleForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveSchedule();
+        });
+    };
+
+    // 加载排课信息
+    function loadSchedules(query = '') {
+        const url = query ? `/api/admin/schedules?q=${encodeURIComponent(query)}` : '/api/admin/schedules';
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(getCredentials())
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                const tbody = document.querySelector('#schedulesTable tbody');
+                tbody.innerHTML = '';
+
+                if (data && data.length > 0) {
+                    data.forEach(schedule => {
+                        const weekdayMap = {
+                            1: '星期一',
+                            2: '星期二',
+                            3: '星期三',
+                            4: '星期四',
+                            5: '星期五',
+                            6: '星期六',
+                            7: '星期日'
+                        };
+
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                        <td>${schedule.course ? schedule.course.name : ''}</td>
+                        <td>${schedule.classroom ? schedule.classroom.name : ''}</td>
+                        <td>${schedule.teacher || ''}</td>
+                        <td>${weekdayMap[schedule.weekday] || ''}</td>
+                        <td>${schedule.startTime || ''}</td>
+                        <td>${schedule.endTime || ''}</td>
+                        <td>${schedule.term || ''}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary me-1" onclick="editSchedule(${schedule.id})">
+                                <i class="fas fa-edit"></i> 编辑
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteSchedule(${schedule.id})">
+                                <i class="fas fa-trash"></i> 删除
+                            </button>
+                        </td>
+                    `;
+                        tbody.appendChild(row);
+                    });
+                } else {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="8" class="text-center">暂无排课信息</td>';
+                    tbody.appendChild(row);
+                }
+            })
+            .catch(error => {
+                console.error('获取排课信息失败:', error);
+            });
+    }
+
+    // 加载课程列表
+    function loadCourses() {
+        fetch('/api/courses', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(getCredentials())
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                const courseSelect = document.getElementById('courseId');
+                courseSelect.innerHTML = '<option value="">请选择课程</option>';
+
+                if (data && data.length > 0) {
+                    data.forEach(course => {
+                        const option = document.createElement('option');
+                        option.value = course.id;
+                        option.textContent = `${course.name} (${course.code})`;
+                        courseSelect.appendChild(option);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('获取课程信息失败:', error);
+            });
+    }
+
+    // 加载教室列表
+    function loadClassrooms() {
+        fetch('/api/admin/classrooms', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(getCredentials())
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                const classroomSelect = document.getElementById('classroomId');
+                classroomSelect.innerHTML = '<option value="">请选择教室</option>';
+
+                if (data && data.length > 0) {
+                    data.forEach(classroom => {
+                        const option = document.createElement('option');
+                        option.value = classroom.id;
+                        option.textContent = `${classroom.name} (${classroom.location})`;
+                        classroomSelect.appendChild(option);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('获取教室信息失败:', error);
+            });
+    }
+
+    // 搜索排课
+    function searchSchedules() {
+        const query = document.getElementById('searchInput').value;
+        loadSchedules(query);
+    }
+
+    // 打开添加排课模态框
+    function openAddModal() {
+        document.getElementById('modalTitle').textContent = '添加排课';
+        document.getElementById('scheduleForm').reset();
+        document.getElementById('scheduleId').value = '';
+        new bootstrap.Modal(document.getElementById('scheduleModal')).show();
+    }
+
+    // 编辑排课
+    function editSchedule(scheduleId) {
+        // 获取排课详细信息并填充到表单中
+        fetch(`/api/admin/schedules/${scheduleId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(getCredentials())
+            }
+        })
+            .then(response => response.json())
+            .then(schedule => {
+                document.getElementById('modalTitle').textContent = '编辑排课';
+                document.getElementById('scheduleId').value = schedule.id;
+                document.getElementById('courseId').value = schedule.course ? schedule.course.id : '';
+                document.getElementById('classroomId').value = schedule.classroom ? schedule.classroom.id : '';
+                document.getElementById('teacher').value = schedule.teacher || '';
+                document.getElementById('weekday').value = schedule.weekday || '';
+                document.getElementById('startTime').value = schedule.startTime || '';
+                document.getElementById('endTime').value = schedule.endTime || '';
+                document.getElementById('term').value = schedule.term || '';
+                new bootstrap.Modal(document.getElementById('scheduleModal')).show();
+            })
+            .catch(error => {
+                console.error('获取排课信息失败:', error);
+            });
+    }
+
+    // 删除排课
+    function deleteSchedule(scheduleId) {
+        if (confirm('确定要删除这个排课吗？')) {
+            // 调用API删除排课
+            fetch(`/api/admin/schedules/${scheduleId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': 'Basic ' + btoa(getCredentials())
+                }
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('排课删除成功');
+                        loadSchedules(); // 重新加载排课列表
+                    } else {
+                        alert('排课删除失败');
+                    }
+                })
+                .catch(error => {
+                    console.error('删除排课失败:', error);
+                    alert('删除排课失败');
+                });
+        }
+    }
+
+    // 保存排课信息
+    function saveSchedule() {
+        const scheduleId = document.getElementById('scheduleId').value;
+        const scheduleData = {
+            courseId: parseInt(document.getElementById('courseId').value) || null,
+            classroomId: parseInt(document.getElementById('classroomId').value) || null,
+            teacher: document.getElementById('teacher').value,
+            weekday: parseInt(document.getElementById('weekday').value) || null,
+            startTime: document.getElementById('startTime').value,
+            endTime: document.getElementById('endTime').value,
+            term: document.getElementById('term').value
+        };
+
+        const method = scheduleId ? 'PUT' : 'POST';
+        const url = scheduleId ? `/api/admin/schedules/${scheduleId}` : '/api/admin/schedules';
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + btoa(getCredentials())
+            },
+            body: JSON.stringify(scheduleData)
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert('排课信息保存成功');
+                    bootstrap.Modal.getInstance(document.getElementById('scheduleModal')).hide();
+                    loadSchedules(); // 重新加载排课列表
+                } else {
+                    alert('排课信息保存失败');
+                }
+            })
+            .catch(error => {
+                console.error('保存排课信息失败:', error);
+                alert('保存排课信息失败');
+            });
+    }
+
+    // 获取存储的凭据
+    function getCredentials() {
+        return localStorage.getItem('credentials') || '';
+    }
+
+    // 退出登录
+    function logout() {
+        localStorage.removeItem('credentials');
+        window.location.href = '/login.html';
+    }
+
+    // 回车搜索
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            searchSchedules();
+        }
+    });
+
+    // 权限检查
+    window.onload = function() {
+        const credentials = localStorage.getItem('credentials');
+        if (!credentials) {
+            window.location.href = '/login.html';
+            return;
+        }
+
+        // 获取当前用户信息
+        fetch('/api/auth/me', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(credentials)
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                const role = data.role[0].authority; // 获取用户角色
+
+                // 检查当前页面是否匹配用户权限
+                const currentPath = window.location.pathname;
+
+                // 学生只能访问学生相关页面
+                if (role === 'STUDENT') {
+                    const allowedPaths = ['/student/', '/announcements.html', '/index.html'];
+                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
+                        window.location.href = '/student/index.html';
+                    }
+                }
+
+                // 教师只能访问教师相关页面
+                if (role === 'TEACHER') {
+                    const allowedPaths = ['/teacher/', '/announcements.html', '/index.html'];
+                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
+                        window.location.href = '/teacher/index.html';
+                    }
+                }
+
+                // 管理员可以访问所有页面
+                if (role === 'ADMIN') {
+                    // 不做限制
+                }
+            })
+            .catch(error => {
+                console.error('获取用户信息失败:', error);
+                window.location.href = '/login.html';
+            });
+    };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

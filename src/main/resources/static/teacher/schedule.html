@@ -5,97 +5,107 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>课程安排 - 学工管理系统</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        .nav {
-            margin-bottom: 20px;
-        }
-        .nav a {
-            margin-right: 10px;
-            text-decoration: none;
-            color: #007bff;
-        }
-        .weekdays {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-        .weekday-btn {
-            padding: 10px 20px;
-            background-color: #e9ecef;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .weekday-btn.active {
-            background-color: #007bff;
-            color: white;
-        }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="/css/style.css" rel="stylesheet">
 </head>
 <body>
-<div class="container">
-    <div class="nav">
-        <a href="/teacher/index.html">首页</a> |
-        <a href="/teacher/schedule.html">课程安排</a> |
-        <a href="/teacher/grades.html">成绩管理</a> |
-        <a href="/announcements.html">公告查看</a> |
-        <a href="#" onclick="logout()">退出</a>
+<!-- 导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-info shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="#">
+            <i class="fas fa-graduation-cap me-2"></i>学工管理系统
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/teacher/index.html">
+                        <i class="fas fa-home me-1"></i>首页
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/teacher/schedule.html">
+                        <i class="fas fa-calendar-alt me-1"></i>课程安排
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/teacher/grades.html">
+                        <i class="fas fa-chart-bar me-1"></i>成绩管理
+                    </a>
+                </li>
+            </ul>
+            <div class="navbar-nav">
+                <a class="nav-link text-white" href="/announcements.html">
+                    <i class="fas fa-bullhorn me-1"></i>公告查看
+                </a>
+                <a class="nav-link text-white" href="#" onclick="logout()">
+                    <i class="fas fa-sign-out-alt me-1"></i>登出账号
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- 页面内容 -->
+<div class="container my-4">
+    <!-- 欢迎横幅 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="p-4 bg-gradient-info text-white rounded-3 shadow-sm">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h1 class="display-6 fw-bold mb-2">课程安排</h1>
+                        <p class="mb-0">查看您的课程时间安排</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-calendar-alt fa-3x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <h2>课程安排</h2>
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-light py-3">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-calendar-alt text-info me-2"></i>课程表
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="weekdays d-flex flex-wrap gap-2 mb-4">
+                <button class="btn btn-outline-info weekday-btn active" data-weekday="1">周一</button>
+                <button class="btn btn-outline-info weekday-btn" data-weekday="2">周二</button>
+                <button class="btn btn-outline-info weekday-btn" data-weekday="3">周三</button>
+                <button class="btn btn-outline-info weekday-btn" data-weekday="4">周四</button>
+                <button class="btn btn-outline-info weekday-btn" data-weekday="5">周五</button>
+                <button class="btn btn-outline-info weekday-btn" data-weekday="6">周六</button>
+                <button class="btn btn-outline-info weekday-btn" data-weekday="7">周日</button>
+            </div>
 
-    <div class="weekdays">
-        <button class="weekday-btn active" data-weekday="1">周一</button>
-        <button class="weekday-btn" data-weekday="2">周二</button>
-        <button class="weekday-btn" data-weekday="3">周三</button>
-        <button class="weekday-btn" data-weekday="4">周四</button>
-        <button class="weekday-btn" data-weekday="5">周五</button>
-        <button class="weekday-btn" data-weekday="6">周六</button>
-        <button class="weekday-btn" data-weekday="7">周日</button>
+            <div class="table-responsive">
+                <table class="table table-hover" id="scheduleTable">
+                    <thead>
+                    <tr>
+                        <th>课程名称</th>
+                        <th>教室</th>
+                        <th>开始时间</th>
+                        <th>结束时间</th>
+                        <th>学期</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- 课表数据将通过JavaScript动态填充 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-
-    <table id="scheduleTable">
-        <thead>
-        <tr>
-            <th>课程名称</th>
-            <th>教室</th>
-            <th>开始时间</th>
-            <th>结束时间</th>
-            <th>学期</th>
-        </tr>
-        </thead>
-        <tbody>
-        <!-- 课表数据将通过JavaScript动态填充 -->
-        </tbody>
-    </table>
 </div>
+
+
 
 <script>
     let currentWeekday = 1;
@@ -144,7 +154,7 @@
                     });
                 } else {
                     const row = document.createElement('tr');
-                    row.innerHTML = '<td colspan="5">当天暂无课程安排</td>';
+                    row.innerHTML = '<td colspan="5" class="text-center">当天暂无课程安排</td>';
                     tbody.appendChild(row);
                 }
             })
@@ -163,7 +173,8 @@
         localStorage.removeItem('credentials');
         window.location.href = '/login.html';
     }
-    // 在每个页面的 window.onload 中添加权限检查
+
+    // 权限检查
     window.onload = function() {
         const credentials = localStorage.getItem('credentials');
         if (!credentials) {
@@ -211,7 +222,7 @@
                 window.location.href = '/login.html';
             });
     };
-
 </script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
