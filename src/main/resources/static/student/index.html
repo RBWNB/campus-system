@@ -77,13 +77,28 @@
         .nav-link:hover {
             background-color: #2980b9;
         }
+
+        .announcement {
+            margin: 1rem 0;
+            padding: 0.5rem;
+        }
+        .section {
+            max-width: 800px;
+            margin: 1rem auto;
+            padding: 0 2rem;
+        }
     </style>
 </head>
 <body>
 <div class="header">
     <h1>学工管理系统</h1>
 </div>
-
+<div class="container">
+<div class="section">
+    <h3>公告栏</h3>
+    <div id="announcementList"></div>
+</div>
+</div>
 <div class="container">
     <h2 style="text-align: center; color: #2c3e50;">欢迎使用学工管理系统</h2>
 
@@ -93,7 +108,7 @@
         <a href="/student/grades.html" class="nav-link">成绩查询</a>
         <a href="/student/courses.html" class="nav-link">课程查询</a>
         <a href="/student/leaves.html" class="nav-link">请假申请</a>
-        <a href="/announcements.html" class="nav-link">公告查看</a>
+        <a href="#" onclick="logout()">登出账号</a>
     </div>
 
     <div class="features">
@@ -122,13 +137,37 @@
 
 <script>
     // 页面加载完成后检查是否已登录
-    window.onload = function() {
+    window.onload = function () {
         const credentials = localStorage.getItem('credentials');
         if (credentials) {
             // 如果已登录，可以显示不同的界面或保持原样
             console.log('用户已登录');
         }
     };
+
+    // 退出登录
+    function logout() {
+        localStorage.removeItem('credentials');
+        window.location.href = '/login.html';
+    }
+
+    //公告栏
+    function loadAnnouncements(){
+        fetch('/api/announcements', {
+            method: 'GET',
+            headers: { 'Authorization': localStorage.getItem('auth') }
+        })
+            .then(res => res.json())
+            .then(data => {
+                let html = "";
+                data.forEach(a => {
+                    html += `<div class="announcement"><strong>${a.title}</strong><br>${a.content}</div><hr>`;
+                });
+                document.getElementById('announcementList').innerHTML = html;
+            });
+    }
+    loadAnnouncements();
+
     // 在每个页面的 window.onload 中添加权限检查
     window.onload = function() {
         const credentials = localStorage.getItem('credentials');

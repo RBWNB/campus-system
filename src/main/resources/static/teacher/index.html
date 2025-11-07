@@ -74,14 +74,18 @@
 <div class="header">
   <h1>学工管理系统 - 教师工作台</h1>
 </div>
-
+<div class="container">
+    <div class="section">
+        <h3>公告栏</h3>
+        <div id="announcementList"></div>
+    </div>
+</div>
 <div class="container">
   <div class="nav">
     <a href="/teacher/index.html">首页</a> |
     <a href="/teacher/schedule.html">课程安排</a> |
     <a href="/teacher/grades.html">成绩管理</a> |
-    <a href="/announcements.html">公告查看</a> |
-    <a href="#" onclick="logout()">退出</a>
+    <a href="#" onclick="logout()">登出账号</a>
   </div>
 
   <h2 style="text-align: center; color: #2c3e50;">欢迎使用教师工作台</h2>
@@ -107,6 +111,23 @@
 </div>
 
 <script>
+    //公告栏
+    function loadAnnouncements(){
+        fetch('/api/announcements', {
+            method: 'GET',
+            headers: { 'Authorization': localStorage.getItem('auth') }
+        })
+            .then(res => res.json())
+            .then(data => {
+                let html = "";
+                data.forEach(a => {
+                    html += `<div class="announcement"><strong>${a.title}</strong><br>${a.content}</div><hr>`;
+                });
+                document.getElementById('announcementList').innerHTML = html;
+            });
+    }
+    loadAnnouncements();
+
   // 获取存储的凭据
   function getCredentials() {
     return localStorage.getItem('credentials') || '';

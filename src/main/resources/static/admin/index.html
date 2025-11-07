@@ -74,7 +74,12 @@
 <div class="header">
   <h1>学工管理系统 - 管理员面板</h1>
 </div>
-
+<div class="container">
+    <div class="section">
+        <h3>公告栏</h3>
+        <div id="announcementList"></div>
+    </div>
+</div>
 <div class="container">
   <div class="nav">
     <a href="/admin/index.html">首页</a> |
@@ -124,6 +129,23 @@
 </div>
 
 <script>
+    //公告栏
+    function loadAnnouncements(){
+        fetch('/api/announcements', {
+            method: 'GET',
+            headers: { 'Authorization': localStorage.getItem('auth') }
+        })
+            .then(res => res.json())
+            .then(data => {
+                let html = "";
+                data.forEach(a => {
+                    html += `<div class="announcement"><strong>${a.title}</strong><br>${a.content}</div><hr>`;
+                });
+                document.getElementById('announcementList').innerHTML = html;
+            });
+    }
+    loadAnnouncements();
+
   // 获取存储的凭据
   function getCredentials() {
     return localStorage.getItem('credentials') || '';
