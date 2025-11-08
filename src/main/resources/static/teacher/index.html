@@ -194,16 +194,29 @@
 </footer>
 
 <script>
-    // 置顶公告
-    function loadAnnouncements(){
+    // 置顶公告 (已修复)
+    function loadAnnouncements(credentials){
         fetch('/api/announcements/top', {
             method: 'GET',
-            headers: { 'Authorization': localStorage.getItem('auth') }
+            headers: {
+                // 使用 'credentials' 并正确格式化 'Basic' 凭据
+                'Authorization': 'Basic ' + btoa(credentials)
+            }
         })
-            .then(res => res.ok ? res.json() : null)
+            .then(res => {
+                // 明确处理 200 (有内容) 和 204 (无内容)
+                if (res.status === 200) {
+                    return res.json(); // 成功获取
+                } else if (res.status === 204) {
+                    return null; // 确定无置顶公告
+                } else {
+                    throw new Error('Server returned status: ' + res.status);
+                }
+            })
             .then(data => {
                 let html = "";
                 if (data) {
+                    // 成功获取数据 (来自 200 OK)
                     html = `
                     <div class="announcement">
                         <strong>${data.title}</strong><br>
@@ -211,74 +224,79 @@
                         <p>${data.content}</p>
                     </div>`;
                 } else {
+                    // data 为 null (来自 204 No Content)
                     html = `<p class="text-muted">暂无置顶公告。</p>`;
                 }
                 document.getElementById('announcementList').innerHTML = html;
             })
-            .catch(() => {
+            .catch((error) => {
+                console.error('Error loading announcements:', error);
                 document.getElementById('announcementList').innerHTML = `<p class="text-danger">公告加载失败</p>`;
             });
     }
 
-  // 获取存储的凭据
-  function getCredentials() {
-    return localStorage.getItem('credentials') || '';
-  }
-
-  // 退出登录
-  function logout() {
-    localStorage.removeItem('credentials');
-    window.location.href = '/login.html';
-  }
-
-  // 在每个页面的 window.onload 中添加权限检查
-  window.onload = function() {
-    const credentials = localStorage.getItem('credentials');
-    if (!credentials) {
-      window.location.href = '/login.html';
-      return;
+    // 获取存储的凭据
+    function getCredentials() {
+        return localStorage.getItem('credentials') || '';
     }
-      loadAnnouncements();
-    // 获取当前用户信息
-    fetch('/api/auth/me', {
-      method: 'GET',
-      headers: {
-        'Authorization': 'Basic ' + btoa(credentials)
-      }
-    })
+
+    // 退出登录
+    function logout() {
+        localStorage.removeItem('credentials');
+        window.location.href = '/login.html';
+    }
+
+    // 在每个页面的 window.onload 中添加权限检查
+    window.onload = function() {
+        const credentials = localStorage.getItem('credentials');
+        if (!credentials) {
+            window.location.href = '/login.html';
+            return;
+        }
+
+        // 确保在获取凭据后，使用凭据调用 loadAnnouncements
+        loadAnnouncements(credentials);
+
+        // 获取当前用户信息
+        fetch('/api/auth/me', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(credentials)
+            }
+        })
             .then(response => response.json())
             .then(data => {
-              const role = data.role[0].authority; // 获取用户角色
+                const role = data.role[0].authority; // 获取用户角色
 
-              // 检查当前页面是否匹配用户权限
-              const currentPath = window.location.pathname;
+                // 检查当前页面是否匹配用户权限
+                const currentPath = window.location.pathname;
 
-              // 学生只能访问学生相关页面
-              if (role === 'STUDENT') {
-                const allowedPaths = ['/student/', '/announcements.html', '/index.html'];
-                if (!allowedPaths.some(path => currentPath.startsWith(path))) {
-                  window.location.href = '/student/index.html';
+                // 学生只能访问学生相关页面
+                if (role === 'STUDENT') {
+                    const allowedPaths = ['/student/', '/announcements.html', '/index.html'];
+                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
+                        window.location.href = '/student/index.html';
+                    }
                 }
-              }
 
-              // 教师只能访问教师相关页面
-              if (role === 'TEACHER') {
-                const allowedPaths = ['/teacher/', '/announcements.html', '/index.html'];
-                if (!allowedPaths.some(path => currentPath.startsWith(path))) {
-                  window.location.href = '/teacher/index.html';
+                // 教师只能访问教师相关页面
+                if (role === 'TEACHER') {
+                    const allowedPaths = ['/teacher/', '/announcements.html', '/index.html'];
+                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
+                        window.location.href = '/teacher/index.html';
+                    }
                 }
-              }
 
-              // 管理员可以访问所有页面
-              if (role === 'ADMIN') {
-                // 不做限制
-              }
+                // 管理员可以访问所有页面
+                if (role === 'ADMIN') {
+                    // 不做限制
+                }
             })
             .catch(error => {
-              console.error('获取用户信息失败:', error);
-              window.location.href = '/login.html';
+                console.error('获取用户信息失败:', error);
+                window.location.href = '/login.html';
             });
-  };
+    };
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

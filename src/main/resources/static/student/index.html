@@ -205,15 +205,6 @@
 </footer>
 
 <script>
-    // 页面加载完成后检查是否已登录
-    window.onload = function () {
-        const credentials = localStorage.getItem('credentials');
-        if (credentials) {
-            // 如果已登录，可以显示不同的界面或保持原样
-            console.log('用户已登录');
-        }
-    };
-
     // 退出登录
     function logout() {
         localStorage.removeItem('credentials');
@@ -221,15 +212,29 @@
     }
 
     // 置顶公告
-    function loadAnnouncements(){
+    function loadAnnouncements(credentials) {
         fetch('/api/announcements/top', {
             method: 'GET',
-            headers: { 'Authorization': localStorage.getItem('auth') }
+            headers: {
+                //使用正确的 'credentials' 凭据，并添加 'Basic'
+                'Authorization': 'Basic ' + btoa(credentials)
+            }
         })
-            .then(res => res.ok ? res.json() : null)
+            .then(res => {
+                // 明确处理 204 No Content (无置顶) 状态
+                if (res.status === 200) {
+                    return res.json(); // 200 OK, 成功获取公告
+                } else if (res.status === 204) {
+                    return null; // 204 No Content, 明确表示无公告
+                } else {
+                    // 其他错误 (e.g., 401, 403, 500)
+                    throw new Error('Server returned status: ' + res.status);
+                }
+            })
             .then(data => {
                 let html = "";
                 if (data) {
+                    // 成功获取到数据 (来自 200 OK)
                     html = `
                     <div class="announcement">
                         <strong>${data.title}</strong><br>
@@ -237,24 +242,30 @@
                         <p>${data.content}</p>
                     </div>`;
                 } else {
+                    // data 为 null (来自 204 No Content)
                     html = `<p class="text-muted">暂无置顶公告。</p>`;
                 }
                 document.getElementById('announcementList').innerHTML = html;
             })
-            .catch(() => {
+            .catch((error) => {
+                // 对应 fetch 失败或抛出的错误
+                console.error('Error loading announcements:', error);
                 document.getElementById('announcementList').innerHTML = `<p class="text-danger">公告加载失败</p>`;
             });
     }
 
-    // 在每个页面的 window.onload 中添加权限检查
+    // 合并和清理 window.onload 逻辑
     window.onload = function() {
         const credentials = localStorage.getItem('credentials');
         if (!credentials) {
             window.location.href = '/login.html';
             return;
         }
-        loadAnnouncements();
-        // 获取当前用户信息
+
+        // 1. 页面加载时, 首先调用已修复的加载公告函数
+        loadAnnouncements(credentials);
+
+        // 2. 然后获取当前用户信息并执行权限检查
         fetch('/api/auth/me', {
             method: 'GET',
             headers: {
