@@ -11,4 +11,7 @@ public class ScheduleDTO {
     private String startTime;
     private String endTime;
     private String term;
+
+    private String courseName;
+    private String classroomName;
 }

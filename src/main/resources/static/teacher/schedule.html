@@ -1,20 +1,42 @@
-<!-- src/main/resources/static/teacher/schedule.html -->
+<!-- src/main/resources/static/student/schedule.html -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>课程安排 - 学工管理系统</title>
+    <title>课程表 - 学工管理系统</title>
+    <!-- 引入 Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 引入 Font Awesome CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 引入我们统一的 style.css -->
     <link href="/css/style.css" rel="stylesheet">
+    <style>
+        .schedule-table th, .schedule-table td {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .schedule-item {
+            background-color: #e9f7fe;
+            border-left: 4px solid #3498db;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+
+        .time-slot {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+    </style>
 </head>
 <body>
-<!-- 导航栏 -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-info shadow-sm">
+<!-- 统一的导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
     <div class="container">
         <a class="navbar-brand fw-bold" href="#">
-            <i class="fas fa-graduation-cap me-2"></i>学工管理系统
+            <i class="fas fa-calendar-alt me-2"></i>课程表
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
@@ -22,18 +44,28 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="/teacher/index.html">
+                    <a class="nav-link" href="/student/index.html"> <!-- Corrected path -->
                         <i class="fas fa-home me-1"></i>首页
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link active" href="/teacher/schedule.html">
-                        <i class="fas fa-calendar-alt me-1"></i>课程安排
+                    <a class="nav-link" href="/student/profile.html">
+                        <i class="fas fa-user me-1"></i>个人信息
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/teacher/grades.html">
-                        <i class="fas fa-chart-bar me-1"></i>成绩管理
+                    <a class="nav-link" href="/student/grades.html">
+                        <i class="fas fa-chart-bar me-1"></i>成绩查询
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/student/courses.html">
+                        <i class="fas fa-book me-1"></i>课程查询
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/student/leaves.html">
+                        <i class="fas fa-calendar-minus me-1"></i>请假申请
                     </a>
                 </li>
             </ul>
@@ -49,16 +81,15 @@
     </div>
 </nav>
 
-<!-- 页面内容 -->
 <div class="container my-4">
-    <!-- 欢迎横幅 -->
+    <!-- 页面标题区域，模仿首页的欢迎横幅 -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="p-4 bg-gradient-info text-white rounded-3 shadow-sm">
+            <div class="p-4 bg-gradient-success text-white rounded-3 shadow-sm">
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1">
-                        <h1 class="display-6 fw-bold mb-2">课程安排</h1>
-                        <p class="mb-0">查看您的课程时间安排</p>
+                        <h1 class="display-6 fw-bold mb-2">我的课程表</h1>
+                        <p class="mb-0">查看您的课程安排时间表</p>
                     </div>
                     <div class="flex-shrink-0">
                         <i class="fas fa-calendar-alt fa-3x opacity-75"></i>
@@ -68,101 +99,51 @@
         </div>
     </div>
 
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-light py-3">
-            <h5 class="card-title mb-0">
-                <i class="fas fa-calendar-alt text-info me-2"></i>课程表
-            </h5>
-        </div>
-        <div class="card-body">
-            <div class="weekdays d-flex flex-wrap gap-2 mb-4">
-                <button class="btn btn-outline-info weekday-btn active" data-weekday="1">周一</button>
-                <button class="btn btn-outline-info weekday-btn" data-weekday="2">周二</button>
-                <button class="btn btn-outline-info weekday-btn" data-weekday="3">周三</button>
-                <button class="btn btn-outline-info weekday-btn" data-weekday="4">周四</button>
-                <button class="btn btn-outline-info weekday-btn" data-weekday="5">周五</button>
-                <button class="btn btn-outline-info weekday-btn" data-weekday="6">周六</button>
-                <button class="btn btn-outline-info weekday-btn" data-weekday="7">周日</button>
-            </div>
-
-            <div class="table-responsive">
-                <table class="table table-hover" id="scheduleTable">
-                    <thead>
-                    <tr>
-                        <th>课程名称</th>
-                        <th>教室</th>
-                        <th>开始时间</th>
-                        <th>结束时间</th>
-                        <th>学期</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <!-- 课表数据将通过JavaScript动态填充 -->
-                    </tbody>
-                </table>
+    <!-- 内容区域 -->
+    <div class="row">
+        <div class="col-12">
+            <!-- 课程表，使用card包裹 -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-table text-success me-2"></i>课程时间表
+                    </h5>
+                    <div>
+                        <button class="btn btn-outline-success me-2" onclick="loadSchedule()">
+                            <i class="fas fa-sync-alt me-1"></i>刷新
+                        </button>
+                        <select class="form-select d-inline-block" id="termSelect" style="width: auto;" onchange="loadSchedule()">
+                            <option value="">当前学期</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered schedule-table">
+                            <thead class="table-success">
+                            <tr>
+                                <th width="10%">时间</th>
+                                <th width="12%">周一</th>
+                                <th width="12%">周二</th>
+                                <th width="12%">周三</th>
+                                <th width="12%">周四</th>
+                                <th width="12%">周五</th>
+                                <th width="12%">周六</th>
+                                <th width="12%">周日</th>
+                            </tr>
+                            </thead>
+                            <tbody id="scheduleTableBody">
+                            <!-- 课程表数据将通过JavaScript动态填充 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-
-
 <script>
-    let currentWeekday = 1;
-
-    // 页面加载时获取课表信息
-    window.onload = function() {
-        loadSchedule(currentWeekday);
-
-        // 添加星期按钮事件监听器
-        document.querySelectorAll('.weekday-btn').forEach(button => {
-            button.addEventListener('click', function() {
-                document.querySelectorAll('.weekday-btn').forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                this.classList.add('active');
-                currentWeekday = parseInt(this.getAttribute('data-weekday'));
-                loadSchedule(currentWeekday);
-            });
-        });
-    };
-
-    // 加载课表信息
-    function loadSchedule(weekday) {
-        fetch(`/api/teacher/schedule?weekday=${weekday}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': 'Basic ' + btoa(getCredentials())
-            }
-        })
-            .then(response => response.json())
-            .then(data => {
-                const tbody = document.querySelector('#scheduleTable tbody');
-                tbody.innerHTML = '';
-
-                if (data && data.length > 0) {
-                    data.forEach(schedule => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                        <td>${schedule.course ? schedule.course.name : ''}</td>
-                        <td>${schedule.classroom ? schedule.classroom.name : ''}</td>
-                        <td>${schedule.startTime || ''}</td>
-                        <td>${schedule.endTime || ''}</td>
-                        <td>${schedule.term || ''}</td>
-                    `;
-                        tbody.appendChild(row);
-                    });
-                } else {
-                    const row = document.createElement('tr');
-                    row.innerHTML = '<td colspan="5" class="text-center">当天暂无课程安排</td>';
-                    tbody.appendChild(row);
-                }
-            })
-            .catch(error => {
-                console.error('获取课表信息失败:', error);
-            });
-    }
-
     // 获取存储的凭据
     function getCredentials() {
         return localStorage.getItem('credentials') || '';
@@ -173,8 +154,7 @@
         localStorage.removeItem('credentials');
         window.location.href = '/login.html';
     }
-
-    // 权限检查
+    // 页面加载时获取课表信息
     window.onload = function() {
         const credentials = localStorage.getItem('credentials');
         if (!credentials) {
@@ -189,40 +169,160 @@
                 'Authorization': 'Basic ' + btoa(credentials)
             }
         })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/login.html';
+                    }
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
-                const role = data.role[0].authority; // 获取用户角色
+                const role = data.role[0].authority;
 
-                // 检查当前页面是否匹配用户权限
                 const currentPath = window.location.pathname;
 
-                // 学生只能访问学生相关页面
+                // 学生权限校验
                 if (role === 'STUDENT') {
                     const allowedPaths = ['/student/', '/announcements.html', '/index.html'];
                     if (!allowedPaths.some(path => currentPath.startsWith(path))) {
                         window.location.href = '/student/index.html';
                     }
                 }
-
-                // 教师只能访问教师相关页面
+                // 教师权限校验
                 if (role === 'TEACHER') {
                     const allowedPaths = ['/teacher/', '/announcements.html', '/index.html'];
                     if (!allowedPaths.some(path => currentPath.startsWith(path))) {
                         window.location.href = '/teacher/index.html';
                     }
                 }
+                // 管理员不做限制
+                if (role === 'ADMIN') {}
 
-                // 管理员可以访问所有页面
-                if (role === 'ADMIN') {
-                    // 不做限制
-                }
+                // 权限校验通过后，加载页面核心数据
+                loadTerms();
+                loadSchedule();
             })
             .catch(error => {
                 console.error('获取用户信息失败:', error);
                 window.location.href = '/login.html';
             });
     };
+
+    // 加载学期信息 - 改为固定选项
+    function loadTerms() {
+        const terms = [
+            { id: 1, name: "大一上" },
+            { id: 2, name: "大一下" },
+            { id: 3, name: "大二上" },
+            { id: 4, name: "大二下" },
+            { id: 5, name: "大三上" },
+            { id: 6, name: "大三下" },
+            { id: 7, name: "大四上" },
+            { id: 8, name: "大四下" }
+        ];
+
+        const termSelect = document.getElementById('termSelect');
+        termSelect.innerHTML = '<option value="">当前学期</option>';
+
+        terms.forEach(term => {
+            const option = document.createElement('option');
+            option.value = term.id;
+            option.textContent = term.name;
+            termSelect.appendChild(option);
+        });
+    }
+
+    // 加载课表信息
+    function loadSchedule() {
+        const termId = document.getElementById('termSelect').value;
+        const url = termId ? `/api/student/schedule?termId=${termId}` : '/api/student/schedule';
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(getCredentials())
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) window.location.href = '/login.html';
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                renderSchedule(data);
+            })
+            .catch(error => {
+                console.error('获取课表信息失败:', error);
+                alert('加载课表信息失败，请稍后重试。');
+            });
+    }
+
+
+    // 渲染课表
+    function renderSchedule(schedules) {
+        const tbody = document.getElementById('scheduleTableBody');
+        tbody.innerHTML = '';
+
+        const timeSlots = [
+            '08:00-09:35', '09:50-11:25', '11:40-13:15', '13:30-15:05',
+            '15:20-16:55', '17:10-18:45', '19:00-20:35'
+        ];
+
+        const scheduleMap = {};
+        for (let i = 1; i <= 7; i++) {
+            scheduleMap[i] = Array(timeSlots.length).fill(null).map(() => []);
+        }
+
+        if (schedules && schedules.length > 0) {
+            schedules.forEach(schedule => {
+                const weekday = schedule.weekday;
+                const timeSlotIndex = getTimeSlotIndex(schedule.startTime, schedule.endTime);
+
+                if (weekday && timeSlotIndex >= 0) {
+                    scheduleMap[weekday][timeSlotIndex].push(schedule);
+                }
+            });
+        }
+
+        timeSlots.forEach((time, index) => {
+            const row = document.createElement('tr');
+            const timeCell = document.createElement('td');
+            timeCell.innerHTML = `<div class="time-slot">${time}</div>`;
+            row.appendChild(timeCell);
+
+            for (let day = 1; day <= 7; day++) {
+                const cell = document.createElement('td');
+                const courses = scheduleMap[day][index];
+
+                if (courses.length > 0) {
+                    courses.forEach(course => {
+                        const courseDiv = document.createElement('div');
+                        courseDiv.className = 'schedule-item mb-1';
+                        courseDiv.innerHTML = `
+                                            <div class="fw-bold">${course.course.name}</div>
+                                            <div class="small">${course.classroom ? course.classroom.name : '待定'}</div>
+                                            <div class="small text-muted">${course.startTime}-${course.endTime}</div>
+                                        `;
+                        cell.appendChild(courseDiv);
+                    });
+                }
+                row.appendChild(cell);
+            }
+            tbody.appendChild(row);
+        });
+    }
+
+    // 查找时间段的索引 (需要完善逻辑)
+    function getTimeSlotIndex(startTime, endTime) {
+        // 这是一个简化的示例，实际应用中需要匹配时间段
+        return 0; // Placeholder
+    }
 </script>
+<!-- 引入 Bootstrap 5 JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

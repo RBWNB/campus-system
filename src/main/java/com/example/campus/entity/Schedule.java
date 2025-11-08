@@ -25,4 +25,7 @@ public class Schedule {
     private LocalTime startTime;
     private LocalTime endTime;
     private String term;
+
+    @ManyToOne
+    private User teacherUser;
 }
