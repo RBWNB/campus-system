@@ -117,13 +117,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    function getCredentials() {
-        const username = "admin";
-        const password = "password";
-        return { username, password };
-    }
-
-    // ** 核心修复逻辑：获取并存储原始来源URL，并实现智能回退 **
+    // ** 核心逻辑：获取并存储原始来源URL，并实现智能回退 **
 
     // 1. 定义所有可能的首页路径
     const homePaths = {
@@ -200,21 +194,27 @@
 
     /**
      * 1. 加载并显示所有公告到时间线
+     *    假设公告 API (/api/announcements) 不需要认证。
      */
     async function loadAnnouncements() {
-        const { username, password } = getCredentials();
         const container = document.getElementById('timeline-container');
         const indexContainer = document.getElementById('timeline-index');
 
         try {
-            const response = await fetch('/api/announcements', {
-                headers: {
-                    'Authorization': 'Basic ' + btoa(`${username}:${password}`)
-                }
-            });
+            // *** 移除 Authorization header，假设 API 不需要认证 ***
+            const response = await fetch('/api/announcements'); // 移除了 headers 部分
 
             if (!response.ok) {
-                throw new Error('获取公告失败');
+                // 根据 response.status 提供更具体的错误信息
+                let errorMessage = '获取公告失败';
+                if (response.status === 401 || response.status === 403) {
+                    errorMessage = '您没有权限查看公告，请先登录。';
+                } else if (response.status === 404) {
+                    errorMessage = '公告API未找到 (/api/announcements)。';
+                } else {
+                    errorMessage = `API请求失败，状态码：${response.status}`;
+                }
+                throw new Error(errorMessage);
             }
 
             const data = await response.json();
@@ -229,8 +229,8 @@
                 return dateB - dateA;
             });
 
-            container.innerHTML = '';
-            indexContainer.innerHTML = '';
+            container.innerHTML = ''; // 清空加载中的提示
+            indexContainer.innerHTML = ''; // 清空索引加载中的提示
 
             if (sortedData.length === 0) {
                 container.innerHTML = '<div class="text-center text-muted p-5">暂无公告</div>';
@@ -251,7 +251,7 @@
 
                 const isNewMonth = yearMonth !== lastYearMonth;
 
-                // --- 2b. 生成时间线项 (先处理ID) ---
+                // --- 2b. 生成时间线项 ---
                 const itemDiv = document.createElement('div');
                 itemDiv.classList.add('timeline-item');
 
@@ -259,7 +259,7 @@
                     itemDiv.classList.add('pinned');
                 }
 
-                // 只有是新月份的第一条公告才添加ID
+                // 只有是新月份的第一条公告才添加ID，用于索引跳转
                 if (isNewMonth) {
                     itemDiv.id = `archive-${yearMonth}`;
                 }
@@ -291,7 +291,7 @@
 
                 container.appendChild(itemDiv);
 
-                // --- 2a. 生成索引链接 (后处理索引和更新状态) ---
+                // --- 2a. 生成索引链接 (只有在新月份时添加) ---
                 if (isNewMonth) {
                     // 如果年份变化，添加年份标题
                     if (dateYear !== currentYear) {
@@ -302,9 +302,8 @@
                         currentYear = dateYear;
                     }
 
-                    // 添加月份链接
+                    // 添加月份链接，链接指向 itemDiv.id
                     const monthLink = document.createElement('a');
-                    // 链接指向 itemDiv.id
                     monthLink.href = `#archive-${yearMonth}`;
                     monthLink.className = 'list-group-item list-group-item-action';
                     monthLink.innerText = `${yearMonth.substring(5)} 月`;
@@ -317,7 +316,8 @@
 
         } catch (error) {
             console.error('加载公告失败:', error);
-            container.innerHTML = '<div class="text-center text-danger p-5">加载公告失败，请检查API服务状态。</div>';
+            // 使用从 error.message 获取的更具体信息
+            container.innerHTML = `<div class="text-center text-danger p-5">加载公告失败：${error.message}</div>`;
             indexContainer.innerHTML = '<a href="#" class="list-group-item list-group-item-action disabled text-danger">加载失败</a>';
         }
     }
