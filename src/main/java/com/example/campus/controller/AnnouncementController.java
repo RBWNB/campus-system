@@ -34,11 +34,27 @@ public class AnnouncementController {
     /** 创建或更新公告（带置顶唯一性逻辑） **/
     @PostMapping
     public Announcement saveAnnouncement(@RequestBody Announcement announcement) {
-        announcement.setPublishedAt(Timestamp.from(Instant.now()));
+
+        // 检查是否为新公告 (ID 为 null)，只在创建时设置发布时间
+        if (announcement.getId() == null) {
+            announcement.setPublishedAt(Timestamp.from(Instant.now()));
+        } else {
+            // 需要从数据库中获取原始时间戳并重新设置，以防止它被 @RequestBody 覆盖为 null。
+            // （如果前端没有在 announcementData 中传递 publishedAt，它默认为 null，JPA 可能会尝试更新它）
+            Announcement existing = announcementRepository.findById(announcement.getId()).orElse(null);
+            if (existing != null) {
+                announcement.setPublishedAt(existing.getPublishedAt()); // 保留原始发布时间
+            } else {
+                // 这种情况理论上不应该发生，但作为B方案
+                announcement.setPublishedAt(Timestamp.from(Instant.now()));
+            }
+        }
+
         // 先保存公告以确保它有一个有效的ID（特别是对于新建的公告）
         Announcement savedAnnouncement = announcementRepository.save(announcement);
+
         // 如果当前公告设置为置顶，则取消其他所有置顶
-        if (announcement.isPinned()) {
+        if (savedAnnouncement.isPinned()) { // 最好使用返回的实体进行检查
             List<Announcement> all = announcementRepository.findAll();
             for (Announcement a : all) {
                 //使用 savedAnnouncement.getId() 来比较，避免空指针异常

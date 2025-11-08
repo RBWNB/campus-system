@@ -269,8 +269,11 @@
             pinned: document.getElementById('pinned').checked
         };
 
-        const method = announcementId ? 'PUT' : 'POST';
-        const url = announcementId ? `/api/announcements/${announcementId}` : '/api/announcements';
+        if (announcementId) {
+            announcementData.id = announcementId;
+        }
+        const method = 'POST';
+        const url = '/api/announcements';
 
         fetch(url, {
             method: method,
