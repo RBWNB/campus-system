@@ -1,5 +1,6 @@
 package com.example.campus.service;
 
+import com.example.campus.entity.Role; // 🔥 必须导入独立的 Role 枚举
 import com.example.campus.entity.*;
 import com.example.campus.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,11 +10,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
-import java.sql.Date;
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.time.LocalDate;
 
 @Configuration
 public class InitDataRunner {
@@ -32,26 +30,26 @@ public class InitDataRunner {
                            LeaveRepository leaveRepo,
                            ScheduleRepository scheduleRepo) {
         return args -> {
-            // 初始化管理员
+            // 初始化管理员：使用独立的 Role.ADMIN
             if (!userRepo.findByUsername("admin").isPresent()) {
                 User admin = new User();
                 admin.setUsername("admin");
                 admin.setPassword(passwordEncoder.encode("admin123"));
-                admin.setRole(Role.ADMIN);
+                admin.setRole(Role.ADMIN); // 🔥 无前缀，直接用独立枚举
                 admin.setName("系统管理员");
                 admin.setEmail("admin@example.com");
                 admin.setCreatedAt(Timestamp.from(Instant.now()));
                 userRepo.save(admin);
             }
 
-            // 初始化教师用户和教师信息
+            // 初始化教师用户：使用 Role.TEACHER
             User teacherUser = null;
             Teacher teacher = null;
             if (!userRepo.findByUsername("teacher").isPresent()) {
                 teacherUser = new User();
                 teacherUser.setUsername("teacher");
                 teacherUser.setPassword(passwordEncoder.encode("teacher123"));
-                teacherUser.setRole(Role.TEACHER);
+                teacherUser.setRole(Role.TEACHER); // 🔥 独立枚举
                 teacherUser.setName("张老师");
                 teacherUser.setEmail("teacher@example.com");
                 teacherUser.setCreatedAt(Timestamp.from(Instant.now()));
@@ -80,14 +78,14 @@ public class InitDataRunner {
                 }
             }
 
-            // 初始化学生
+            // 初始化学生：使用 Role.STUDENT
             User studentUser = null;
             Student student = null;
             if (!userRepo.findByUsername("student").isPresent()) {
                 studentUser = new User();
                 studentUser.setUsername("student");
                 studentUser.setPassword(passwordEncoder.encode("student123"));
-                studentUser.setRole(Role.STUDENT);
+                studentUser.setRole(Role.STUDENT); // 🔥 独立枚举
                 studentUser.setName("李同学");
                 studentUser.setEmail("stu@example.com");
                 studentUser.setCreatedAt(Timestamp.from(Instant.now()));
@@ -106,7 +104,7 @@ public class InitDataRunner {
                 student = studentRepo.findByUserId(studentUser.getId()).orElse(null);
             }
 
-            // 初始化课程并分配教师
+            // 初始化课程（不变）
             if (courseRepo.count() == 0) {
                 Course c1 = new Course();
                 c1.setCode("CS101");
@@ -135,7 +133,7 @@ public class InitDataRunner {
                 c3.setCreatedAt(Timestamp.from(Instant.now()));
                 courseRepo.save(c3);
 
-                // 为学生添加课程成绩记录
+                // 初始化成绩（不变）
                 if (student != null) {
                     Grade grade1 = new Grade();
                     grade1.setStudent(student);
@@ -171,7 +169,7 @@ public class InitDataRunner {
                 }
             }
 
-            // 初始化教室
+            // 初始化教室（不变）
             if (classroomRepo.count() == 0) {
                 Classroom r1 = new Classroom();
                 r1.setName("A101");
@@ -196,4 +194,7 @@ public class InitDataRunner {
                 r4.setCapacity(50);
                 r4.setLocation("教学楼D-102");
                 classroomRepo.save(r4);
-            };};}}
+            }
+        };
+    }
+}

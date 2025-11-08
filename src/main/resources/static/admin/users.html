@@ -1,4 +1,3 @@
-<!-- src/main/resources/static/admin/users.html -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -155,6 +154,7 @@
                     <div class="mb-3">
                         <label for="password" class="form-label">密码:</label>
                         <input type="password" class="form-control" id="password" required>
+                        <div class="form-text">添加用户时必填，编辑用户时留空则不修改密码</div>
                     </div>
 
                     <div class="mb-3">
@@ -164,6 +164,31 @@
                             <option value="TEACHER">教师</option>
                             <option value="STUDENT">学生</option>
                         </select>
+                    </div>
+
+                    <!-- 教师专属字段（默认隐藏） -->
+                    <div class="mb-3" id="teacherFields" style="display: none; border-top: 1px solid #eee; padding-top: 15px; margin-top: 15px;">
+                        <h6 class="text-muted mb-3"><i class="fas fa-chalkboard-teacher me-1"></i>教师专属信息</h6>
+                        <div class="mb-3">
+                            <label for="teacherNo" class="form-label">教师编号:</label>
+                            <input type="text" class="form-control" id="teacherNo" placeholder="输入唯一教师编号（如T2024001）" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="title" class="form-label">职称:</label>
+                            <input type="text" class="form-control" id="title" placeholder="输入职称（如副教授、讲师）">
+                        </div>
+                        <div class="mb-3">
+                            <label for="department" class="form-label">所属部门:</label>
+                            <input type="text" class="form-control" id="department" placeholder="输入所属部门（如计算机科学学院）">
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">联系电话:</label>
+                            <input type="text" class="form-control" id="phone" placeholder="输入联系电话">
+                        </div>
+                        <div class="mb-3">
+                            <label for="office" class="form-label">办公室:</label>
+                            <input type="text" class="form-control" id="office" placeholder="输入办公室位置（如教学楼A-302）">
+                        </div>
                     </div>
                 </form>
             </div>
@@ -258,6 +283,7 @@
         document.getElementById('modalTitle').textContent = '添加用户';
         document.getElementById('userForm').reset();
         document.getElementById('userId').value = '';
+        document.getElementById('teacherFields').style.display = 'none'; // 默认隐藏教师字段
         new bootstrap.Modal(document.getElementById('userModal')).show();
     }
 
@@ -284,6 +310,14 @@
                 document.getElementById('email').value = user.email || '';
                 document.getElementById('password').value = ''; // Don't prefill password
                 document.getElementById('role').value = user.role || '';
+
+                // 若角色是教师，显示教师字段（编辑时暂不回显教师详情，可后续扩展）
+                if (user.role === 'TEACHER') {
+                    document.getElementById('teacherFields').style.display = 'block';
+                } else {
+                    document.getElementById('teacherFields').style.display = 'none';
+                }
+
                 new bootstrap.Modal(document.getElementById('userModal')).show();
             })
             .catch(error => console.error('获取用户信息失败:', error));
@@ -313,19 +347,48 @@
         }
     }
 
-    // 保存用户信息
+    // 保存用户信息（新增教师字段处理）
     function saveUser() {
         const userId = document.getElementById('userId').value;
         const userData = {
-            username: document.getElementById('username').value,
-            name: document.getElementById('name').value,
-            email: document.getElementById('email').value,
-            password: document.getElementById('password').value, // Password field might be empty if not changing
+            username: document.getElementById('username').value.trim(),
+            name: document.getElementById('name').value.trim(),
+            email: document.getElementById('email').value.trim(),
             role: document.getElementById('role').value
         };
 
+        // 密码处理：添加用户时必填，编辑时留空则不修改
+        const password = document.getElementById('password').value.trim();
+        if (password) {
+            userData.password = password;
+        }
+
+        // 角色为教师时，添加教师专属信息
+        if (userData.role === 'TEACHER') {
+            const teacherNo = document.getElementById('teacherNo').value.trim();
+            if (!teacherNo) {
+                alert('教师编号不能为空！');
+                return;
+            }
+            // 构建教师信息对象
+            userData.teacher = {
+                teacherNo: teacherNo,
+                title: document.getElementById('title').value.trim(),
+                department: document.getElementById('department').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                office: document.getElementById('office').value.trim()
+            };
+        }
+
+        // 角色为学生时，可后续补充学生信息处理（保持原有逻辑）
+        if (userData.role === 'STUDENT') {
+            // 若需要添加学生信息，可参考教师逻辑扩展
+            // userData.student = { ... };
+        }
+
+        // 接口地址修正：添加用户应调用 /api/auth/admin/register（与Controller对应）
         const method = userId ? 'PUT' : 'POST';
-        const url = userId ? `/api/admin/users/${userId}` : '/api/admin/users';
+        const url = userId ? `/api/admin/users/${userId}` : '/api/auth/admin/register';
 
         fetch(url, {
             method: method,
@@ -337,21 +400,28 @@
         })
             .then(response => {
                 if (!response.ok) {
-                    if (response.status === 401) window.location.href = '/login.html';
-                    throw new Error('Network response was not ok');
+                    return response.text().then(text => {
+                        throw new Error(text || '操作失败');
+                    });
                 }
-                return response.json();
+                return response.text();
             })
-            .then(data => {
-                alert('用户信息保存成功');
+            .then(message => {
+                alert(message || '用户信息保存成功');
                 bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
                 loadUsers(); // 重新加载用户列表
             })
             .catch(error => {
                 console.error('保存用户信息失败:', error);
-                alert('保存用户信息失败');
+                alert('保存用户信息失败: ' + error.message);
             });
     }
+
+    // 角色选择change事件：动态显示/隐藏教师字段
+    document.getElementById('role').addEventListener('change', function() {
+        const teacherFields = document.getElementById('teacherFields');
+        teacherFields.style.display = this.value === 'TEACHER' ? 'block' : 'none';
+    });
 
     // --- 合并后的 window.onload ---
     window.onload = function() {
