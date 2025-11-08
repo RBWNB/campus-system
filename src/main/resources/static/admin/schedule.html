@@ -8,6 +8,26 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="/css/style.css" rel="stylesheet">
+    <style>
+        /* 错误提示样式 */
+        .error-text {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+        /* 禁用状态提示 */
+        .select-hint {
+            color: #6c757d;
+        }
+        /* 表单字段错误样式 */
+        .form-control.is-invalid, .form-select.is-invalid {
+            border-color: #dc3545;
+        }
+        .invalid-feedback {
+            display: none;
+        }
+    </style>
 </head>
 <body>
 <!-- 导航栏 -->
@@ -144,12 +164,14 @@
                             <div class="mb-3">
                                 <label for="courseName" class="form-label">课程:</label>
                                 <input type="text" class="form-control" id="courseName" required>
+                                <div class="invalid-feedback">请输入课程名称</div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="classroomName" class="form-label">教室:</label>
                                 <input type="text" class="form-control" id="classroomName" required>
+                                <div class="invalid-feedback">请输入教室名称</div>
                             </div>
                         </div>
                     </div>
@@ -159,6 +181,7 @@
                             <div class="mb-3">
                                 <label for="teacher" class="form-label">教师:</label>
                                 <input type="text" class="form-control" id="teacher" required>
+                                <div class="invalid-feedback">请输入教师姓名</div>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -174,6 +197,7 @@
                                     <option value="6">星期六</option>
                                     <option value="7">星期日</option>
                                 </select>
+                                <div class="invalid-feedback">请选择星期</div>
                             </div>
                         </div>
                     </div>
@@ -182,13 +206,21 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="startTime" class="form-label">开始时间:</label>
-                                <input type="time" class="form-control" id="startTime" required>
+                                <select class="form-select" id="startTime" required onchange="syncEndTimeOptions()">
+                                    <option value="">请选择开始时间</option>
+                                    <!-- 动态填充允许的开始时间 -->
+                                </select>
+                                <div class="invalid-feedback">请选择开始时间</div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="endTime" class="form-label">结束时间:</label>
-                                <input type="time" class="form-control" id="endTime" required>
+                                <select class="form-select" id="endTime" required disabled>
+                                    <option value="" class="select-hint">请先选择开始时间</option>
+                                </select>
+                                <div class="invalid-feedback">请选择结束时间</div>
+                                <div id="timeError" class="error-text">您选择的课程时间不符合课程规定</div>
                             </div>
                         </div>
                     </div>
@@ -206,6 +238,7 @@
                             <option value="大四上">大四上</option>
                             <option value="大四下">大四下</option>
                         </select>
+                        <div class="invalid-feedback">请选择学期</div>
                     </div>
                 </form>
             </div>
@@ -218,16 +251,190 @@
 </div>
 
 <script>
-    // 页面加载时获取所有排课信息
-    window.onload = function() {
-        loadSchedules();
+    // 定义允许的课程时间段（与教师端一致）
+    const allowedTimeSlots = [
+        { start: '08:00', end: '09:35' },
+        { start: '09:50', end: '11:25' },
+        { start: '11:40', end: '13:15' },
+        { start: '13:30', end: '15:05' },
+        { start: '15:20', end: '16:55' },
+        { start: '17:10', end: '18:45' },
+        { start: '19:00', end: '20:35' }
+    ];
 
-        // 表单提交事件
+    // 页面加载时执行的统一逻辑
+    window.onload = function() {
+        // 权限检查
+        checkPermission();
+        // 加载排课列表
+        loadSchedules();
+        // 填充开始时间选择框
+        fillStartTimeOptions();
+        // 表单提交事件绑定
         document.getElementById('scheduleForm').addEventListener('submit', function(e) {
             e.preventDefault();
             saveSchedule();
         });
     };
+
+    // 权限检查
+    function checkPermission() {
+        const credentials = localStorage.getItem('credentials');
+        if (!credentials) {
+            window.location.href = '/login.html';
+            return;
+        }
+
+        // 获取当前用户信息
+        fetch('/api/auth/me', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(credentials)
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                const role = data.role[0].authority;
+                const currentPath = window.location.pathname;
+
+                // 学生权限限制
+                if (role === 'STUDENT') {
+                    const allowedPaths = ['/student/', '/announcements.html', '/index.html'];
+                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
+                        window.location.href = '/student/index.html';
+                    }
+                }
+
+                // 教师权限限制
+                if (role === 'TEACHER') {
+                    const allowedPaths = ['/teacher/', '/announcements.html', '/index.html'];
+                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
+                        window.location.href = '/teacher/index.html';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('获取用户信息失败:', error);
+                window.location.href = '/login.html';
+            });
+    }
+
+    // 填充开始时间选择框选项
+    function fillStartTimeOptions() {
+        const startTimeSelect = document.getElementById('startTime');
+        startTimeSelect.innerHTML = '<option value="">请选择开始时间</option>';
+
+        // 去重填充开始时间（避免重复选项）
+        const uniqueStartTimes = [...new Set(allowedTimeSlots.map(slot => slot.start))];
+        uniqueStartTimes.forEach(start => {
+            const option = document.createElement('option');
+            option.value = start;
+            option.textContent = start;
+            startTimeSelect.appendChild(option);
+        });
+    }
+
+    // 联动填充结束时间选项
+    function syncEndTimeOptions() {
+        const startTime = document.getElementById('startTime').value;
+        const endTimeSelect = document.getElementById('endTime');
+        const timeError = document.getElementById('timeError');
+
+        // 重置结束时间选择框和错误提示
+        endTimeSelect.innerHTML = '';
+        endTimeSelect.disabled = true;
+        timeError.style.display = 'none';
+        // 清除结束时间的错误样式
+        endTimeSelect.classList.remove('is-invalid');
+
+        // 未选择开始时间时，显示提示
+        if (!startTime) {
+            const hintOption = document.createElement('option');
+            hintOption.value = '';
+            hintOption.className = 'select-hint';
+            hintOption.textContent = '请先选择开始时间';
+            endTimeSelect.appendChild(hintOption);
+            return;
+        }
+
+        // 根据开始时间查找对应的结束时间
+        const matchedSlot = allowedTimeSlots.find(slot => slot.start === startTime);
+        if (matchedSlot) {
+            // 启用结束时间选择框并添加唯一匹配选项
+            endTimeSelect.disabled = false;
+            const endOption = document.createElement('option');
+            endOption.value = matchedSlot.end;
+            endOption.textContent = matchedSlot.end;
+            endTimeSelect.appendChild(endOption);
+            // 自动选中唯一选项
+            endOption.selected = true;
+        } else {
+            // 异常情况：无匹配时间段
+            const errorOption = document.createElement('option');
+            errorOption.value = '';
+            errorOption.className = 'select-hint';
+            errorOption.textContent = '无对应结束时间';
+            endTimeSelect.appendChild(errorOption);
+        }
+    }
+
+    // 验证时间是否合规
+    function validateTimeSlot() {
+        const startTime = document.getElementById('startTime').value;
+        const endTime = document.getElementById('endTime').value;
+        const timeError = document.getElementById('timeError');
+
+        if (!startTime || !endTime) {
+            return false;
+        }
+
+        const isMatch = allowedTimeSlots.some(slot =>
+            slot.start === startTime && slot.end === endTime
+        );
+
+        timeError.style.display = isMatch ? 'none' : 'block';
+        return isMatch;
+    }
+
+    // 校验所有必填字段（核心新增）
+    function validateRequiredFields() {
+        const requiredFields = [
+            { id: 'courseName', name: '课程名称' },
+            { id: 'classroomName', name: '教室名称' },
+            { id: 'teacher', name: '教师姓名' },
+            { id: 'weekday', name: '星期' },
+            { id: 'startTime', name: '开始时间' },
+            { id: 'endTime', name: '结束时间' },
+            { id: 'term', name: '学期' }
+        ];
+
+        let missingFields = [];
+        let isValid = true;
+
+        // 遍历校验每个必填字段
+        requiredFields.forEach(field => {
+            const element = document.getElementById(field.id);
+            const value = element.value.trim();
+
+            if (!value) {
+                // 标记为无效状态，显示字段级错误提示
+                element.classList.add('is-invalid');
+                missingFields.push(field.name);
+                isValid = false;
+            } else {
+                // 移除无效状态
+                element.classList.remove('is-invalid');
+            }
+        });
+
+        // 显示漏填提示
+        if (missingFields.length > 0) {
+            const tipText = `以下字段未填写，请补充完整：\n${missingFields.join('、')}`;
+            alert(tipText);
+        }
+
+        return isValid;
+    }
 
     // 加载排课信息
     function loadSchedules(query = '') {
@@ -298,12 +505,23 @@
         document.getElementById('modalTitle').textContent = '添加排课';
         document.getElementById('scheduleForm').reset();
         document.getElementById('scheduleId').value = '';
+        document.getElementById('timeError').style.display = 'none';
+
+        // 重置结束时间选择框状态
+        const endTimeSelect = document.getElementById('endTime');
+        endTimeSelect.innerHTML = '<option value="" class="select-hint">请先选择开始时间</option>';
+        endTimeSelect.disabled = true;
+
+        // 清除所有字段的错误样式
+        document.querySelectorAll('.form-control, .form-select').forEach(el => {
+            el.classList.remove('is-invalid');
+        });
+
         new bootstrap.Modal(document.getElementById('scheduleModal')).show();
     }
 
-    // 编辑排课
+    // 编辑排课（适配时间联动）
     function editSchedule(scheduleId) {
-        // 获取排课详细信息并填充到表单中
         fetch(`/api/admin/schedules/${scheduleId}`, {
             method: 'GET',
             headers: {
@@ -318,9 +536,25 @@
                 document.getElementById('classroomName').value = schedule.classroom ? schedule.classroom.name : '';
                 document.getElementById('teacher').value = schedule.teacher || '';
                 document.getElementById('weekday').value = schedule.weekday || '';
-                document.getElementById('startTime').value = schedule.startTime || '';
-                document.getElementById('endTime').value = schedule.endTime || '';
                 document.getElementById('term').value = schedule.term || '';
+                document.getElementById('timeError').style.display = 'none';
+
+                // 清除所有字段的错误样式
+                document.querySelectorAll('.form-control, .form-select').forEach(el => {
+                    el.classList.remove('is-invalid');
+                });
+
+                // 填充开始时间并联动结束时间
+                const startTimeSelect = document.getElementById('startTime');
+                startTimeSelect.value = schedule.startTime || '';
+                syncEndTimeOptions();
+
+                // 确认结束时间选中状态
+                const endTimeSelect = document.getElementById('endTime');
+                if (schedule.endTime) {
+                    endTimeSelect.value = schedule.endTime;
+                }
+
                 new bootstrap.Modal(document.getElementById('scheduleModal')).show();
             })
             .catch(error => {
@@ -331,7 +565,6 @@
     // 删除排课
     function deleteSchedule(scheduleId) {
         if (confirm('确定要删除这个排课吗？')) {
-            // 调用API删除排课
             fetch(`/api/admin/schedules/${scheduleId}`, {
                 method: 'DELETE',
                 headers: {
@@ -341,7 +574,7 @@
                 .then(response => {
                     if (response.ok) {
                         alert('排课删除成功');
-                        loadSchedules(); // 重新加载排课列表
+                        loadSchedules();
                     } else {
                         alert('排课删除失败');
                     }
@@ -353,8 +586,22 @@
         }
     }
 
-    // 保存排课信息
+    // 保存排课信息（整合全量校验）
     function saveSchedule() {
+        // 第一步：校验必填字段是否完整
+        const isFieldsComplete = validateRequiredFields();
+        if (!isFieldsComplete) {
+            return;
+        }
+
+        // 第二步：校验时间是否合规
+        const isTimeValid = validateTimeSlot();
+        if (!isTimeValid) {
+            alert('您选择的课程时间不符合课程规定');
+            return;
+        }
+
+        // 第三步：提交数据
         const scheduleId = document.getElementById('scheduleId').value;
         const scheduleData = {
             courseName: document.getElementById('courseName').value,
@@ -381,7 +628,7 @@
                 if (response.ok) {
                     alert('排课信息保存成功');
                     bootstrap.Modal.getInstance(document.getElementById('scheduleModal')).hide();
-                    loadSchedules(); // 重新加载排课列表
+                    loadSchedules();
                 } else {
                     alert('排课信息保存失败');
                 }
@@ -410,54 +657,15 @@
         }
     });
 
-    // 权限检查
-    window.onload = function() {
-        const credentials = localStorage.getItem('credentials');
-        if (!credentials) {
-            window.location.href = '/login.html';
-            return;
-        }
-
-        // 获取当前用户信息
-        fetch('/api/auth/me', {
-            method: 'GET',
-            headers: {
-                'Authorization': 'Basic ' + btoa(credentials)
-            }
-        })
-            .then(response => response.json())
-            .then(data => {
-                const role = data.role[0].authority; // 获取用户角色
-
-                // 检查当前页面是否匹配用户权限
-                const currentPath = window.location.pathname;
-
-                // 学生只能访问学生相关页面
-                if (role === 'STUDENT') {
-                    const allowedPaths = ['/student/', '/announcements.html', '/index.html'];
-                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
-                        window.location.href = '/student/index.html';
-                    }
-                }
-
-                // 教师只能访问教师相关页面
-                if (role === 'TEACHER') {
-                    const allowedPaths = ['/teacher/', '/announcements.html', '/index.html'];
-                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
-                        window.location.href = '/teacher/index.html';
-                    }
-                }
-
-                // 管理员可以访问所有页面
-                if (role === 'ADMIN') {
-                    // 不做限制
-                }
-            })
-            .catch(error => {
-                console.error('获取用户信息失败:', error);
-                window.location.href = '/login.html';
-            });
-    };
+    // 输入框/选择框变化时清除错误样式（优化体验）
+    document.querySelectorAll('.form-control, .form-select').forEach(el => {
+        el.addEventListener('input', function() {
+            this.classList.remove('is-invalid');
+        });
+        el.addEventListener('change', function() {
+            this.classList.remove('is-invalid');
+        });
+    });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
