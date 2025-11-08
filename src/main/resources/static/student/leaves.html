@@ -1,4 +1,3 @@
-<!-- src/main/resources/static/student/leaves.html -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -11,22 +10,126 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- 引入我们统一的 style.css -->
     <link href="/css/style.css" rel="stylesheet">
-    <!-- Optional: Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
-        /* 移除原有的内联样式，完全依赖 style.css 和 Bootstrap */
-        /* 确保 Bootstrap 的 form-control 类能正常应用 */
-        .form-control {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
+        /* 自定义样式确保文字清晰显示 */
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            font-weight: 600;
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .table td {
+            vertical-align: middle;
+            padding: 0.75rem;
+        }
+
         .form-label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #495057;
+        }
+
+        .form-control {
+            border: 1px solid #ced4da;
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .form-control:focus {
+            border-color: #ffc107;
+            box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+        }
+
+        .btn-warning {
+            background-color: #ffc107;
+            border-color: #ffc107;
+            color: #212529;
+            font-weight: 500;
+        }
+
+        .btn-warning:hover {
+            background-color: #e0a800;
+            border-color: #e0a800;
+            color: #212529;
+        }
+
+        .status-badge {
+            padding: 0.35em 0.65em;
+            font-size: 0.75em;
+            font-weight: 600;
+            border-radius: 0.25rem;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-approved {
+            background-color: #d1edff;
+            color: #0c5460;
+        }
+
+        .status-rejected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+        }
+
+        .page-title {
+            color: #212529;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+
+        .table-responsive {
+            border-radius: 0.375rem;
+            overflow: hidden;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #6c757d;
+            padding: 2rem;
+        }
+
+        .text-end {
+            text-align: right;
+        }
+
+        .bg-gradient-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+        }
+
+        .text-white {
+            color: #fff !important;
         }
     </style>
 </head>
@@ -88,11 +191,11 @@
             <div class="p-4 bg-gradient-warning text-white rounded-3 shadow-sm">
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1">
-                        <h1 class="display-6 fw-bold mb-2">请假申请</h1>
-                        <p class="mb-0">填写请假信息，并查看申请记录</p>
+                        <h1 class="page-title mb-2">请假申请</h1>
+                        <p class="page-subtitle mb-0">填写请假信息，并查看申请记录</p>
                     </div>
                     <div class="flex-shrink-0">
-                        <i class="fas fa-edit fa-3x opacity-75"></i> <!-- 使用style.css中的opacity-75 -->
+                        <i class="fas fa-edit fa-3x opacity-75"></i>
                     </div>
                 </div>
             </div>
@@ -124,11 +227,10 @@
                         </div>
                         <div class="mt-3">
                             <label for="reason" class="form-label">请假原因:</label>
-                            <textarea id="reason" name="reason" rows="4" class="form-control" required></textarea>
+                            <textarea id="reason" name="reason" rows="4" class="form-control" placeholder="请详细说明请假原因..." required></textarea>
                         </div>
-                        <div class="mt-3 text-end">
-                            <!-- 使用style.css中的btn-custom，并结合Bootstrap颜色类 -->
-                            <button type="submit" class="btn btn-warning btn-custom">
+                        <div class="mt-4 text-end">
+                            <button type="submit" class="btn btn-warning px-4">
                                 <i class="fas fa-paper-plane me-1"></i> 提交申请
                             </button>
                         </div>
@@ -138,20 +240,22 @@
 
             <!-- 请假记录表格，使用card包裹 -->
             <div class="card shadow-sm border-0">
-                <div class="card-header bg-light py-3">
+                <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
                     <h5 class="card-title mb-0">
                         <i class="fas fa-list-alt text-warning me-2"></i>我的请假记录
                     </h5>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="loadLeaveRecords()">
+                        <i class="fas fa-sync-alt me-1"></i> 刷新
+                    </button>
                 </div>
-                <div class="card-body">
-                    <!-- 使用Bootstrap的table类，并添加hover和align-middle -->
+                <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table id="leavesTable" class="table table-hover align-middle">
+                        <table id="leavesTable" class="table table-hover align-middle mb-0">
                             <thead>
                             <tr>
                                 <th>开始日期</th>
                                 <th>结束日期</th>
-                                <th>原因</th>
+                                <th>请假原因</th>
                                 <th>状态</th>
                                 <th>申请时间</th>
                             </tr>
@@ -189,6 +293,23 @@
             reason: document.getElementById('reason').value
         };
 
+        // 验证日期
+        if (!leaveData.startDate || !leaveData.endDate) {
+            alert('请选择完整的请假日期');
+            return;
+        }
+
+        if (new Date(leaveData.startDate) > new Date(leaveData.endDate)) {
+            alert('结束日期不能早于开始日期');
+            return;
+        }
+
+        // 显示加载状态
+        const submitBtn = document.querySelector('#leaveForm button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> 提交中...';
+        submitBtn.disabled = true;
+
         fetch('/api/student/leaves', {
             method: 'POST',
             headers: {
@@ -211,12 +332,21 @@
             })
             .catch(error => {
                 console.error('提交失败:', error);
-                alert('提交失败');
+                alert('提交失败，请稍后重试');
+            })
+            .finally(() => {
+                // 恢复按钮状态
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
             });
     });
 
     // 加载请假记录
     function loadLeaveRecords() {
+        // 显示加载状态
+        const tbody = document.querySelector('#leavesTable tbody');
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4"><i class="fas fa-spinner fa-spin me-2"></i>加载中...</td></tr>';
+
         fetch('/api/student/leaves', {
             method: 'GET',
             headers: {
@@ -231,32 +361,46 @@
                 return response.json();
             })
             .then(data => {
-                const tbody = document.querySelector('#leavesTable tbody');
                 tbody.innerHTML = '';
 
                 if (data && data.length > 0) {
                     data.forEach(leave => {
                         const row = document.createElement('tr');
+
+                        // 根据状态设置样式类
+                        let statusClass = 'status-pending';
+                        if (leave.status === 'APPROVED') statusClass = 'status-approved';
+                        if (leave.status === 'REJECTED') statusClass = 'status-rejected';
+
                         row.innerHTML = `
                             <td>${leave.startDate || ''}</td>
                             <td>${leave.endDate || ''}</td>
-                            <td>${leave.reason || ''}</td>
-                            <td>${leave.status || ''}</td>
+                            <td class="text-truncate" style="max-width: 200px;" title="${leave.reason || ''}">${leave.reason || ''}</td>
+                            <td><span class="status-badge ${statusClass}">${getStatusText(leave.status)}</span></td>
                             <td>${leave.appliedAt ? new Date(leave.appliedAt).toLocaleString() : ''}</td>
                         `;
                         tbody.appendChild(row);
                     });
                 } else {
                     const row = document.createElement('tr');
-                    row.innerHTML = '<td colspan="5" class="text-center">暂无请假记录</td>';
+                    row.innerHTML = '<td colspan="5" class="no-data"><i class="fas fa-inbox me-2"></i>暂无请假记录</td>';
                     tbody.appendChild(row);
                 }
             })
             .catch(error => {
                 console.error('获取请假记录失败:', error);
-                const tbody = document.querySelector('#leavesTable tbody');
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">加载请假记录失败，请稍后重试。</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle me-2"></i>加载请假记录失败，请稍后重试。</td></tr>';
             });
+    }
+
+    // 获取状态文本
+    function getStatusText(status) {
+        const statusMap = {
+            'PENDING': '待审核',
+            'APPROVED': '已批准',
+            'REJECTED': '已拒绝'
+        };
+        return statusMap[status] || status || '未知';
     }
 
     // --- 合并后的 window.onload ---
