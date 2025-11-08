@@ -36,46 +36,42 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
     <div class="container">
         <a class="navbar-brand fw-bold" href="#">
-            <i class="fas fa-calendar-alt me-2"></i>课程表
-        </a>
+            <i class="fas fa-graduation-cap me-2"></i>学工管理系统
+        </a >
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="/student/index.html"> <!-- Corrected path -->
+                    <a class="nav-link" href="/teacher/index.html">
                         <i class="fas fa-home me-1"></i>首页
-                    </a>
+                    </a >
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/student/profile.html">
-                        <i class="fas fa-user me-1"></i>个人信息
-                    </a>
+                    <!-- 为当前页面添加active类和fw-bold样式 -->
+                    <a class="nav-link active fw-bold" href="/teacher/schedule.html">
+                        <i class="fas fa-calendar-alt me-1"></i>课程安排
+                    </a >
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/student/grades.html">
-                        <i class="fas fa-chart-bar me-1"></i>成绩查询
-                    </a>
+                    <a class="nav-link" href="/teacher/grades.html">
+                        <i class="fas fa-chart-bar me-1"></i>成绩管理
+                    </a >
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/student/courses.html">
-                        <i class="fas fa-book me-1"></i>课程查询
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/student/leaves.html">
-                        <i class="fas fa-calendar-minus me-1"></i>请假申请
-                    </a>
+                    <a class="nav-link" href="/teacher/students.html">
+                        <i class="fas fa-users me-1"></i>学生名单
+                    </a >
                 </li>
             </ul>
             <div class="navbar-nav">
                 <a class="nav-link text-white" href="/announcements.html">
                     <i class="fas fa-bullhorn me-1"></i>公告查看
-                </a>
+                </a >
                 <a class="nav-link text-white" href="#" onclick="logout()">
                     <i class="fas fa-sign-out-alt me-1"></i>登出账号
-                </a>
+                </a >
             </div>
         </div>
     </div>
