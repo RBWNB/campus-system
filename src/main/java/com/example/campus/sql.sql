@@ -15,4 +15,6 @@ ALTER TABLE users
 ALTER TABLE users
     ADD CONSTRAINT chk_users_username CHECK (LENGTH(username) <= 16);
 
-
+-- 江，对管理员模块leaves表的约束
+ALTER TABLE leaves
+    MODIFY COLUMN reason VARCHAR(255) NOT NULL COMMENT '请假原因（必须填写）';

@@ -29,6 +29,17 @@
             font-weight: bold;
         }
     </style>
+
+    <style>
+        /* 新增提示样式（可根据页面风格调整） */
+        .error提示 {
+            color: red;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none; /* 默认隐藏 */
+        }
+    </style>
+
 </head>
 <body>
 <!-- 统一的导航栏 -->
@@ -109,9 +120,10 @@
                         <i class="fas fa-edit text-warning me-2"></i>填写请假申请
                     </h5>
                 </div>
+
                 <div class="card-body">
                     <!-- 使用Bootstrap的grid系统组织表单 -->
-                    <form id="leaveForm">
+                    <form id="leaveForm" action="提交接口地址" method="post">
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="startDate" class="form-label">开始日期:</label>
@@ -124,7 +136,8 @@
                         </div>
                         <div class="mt-3">
                             <label for="reason" class="form-label">请假原因:</label>
-                            <textarea id="reason" name="reason" rows="4" class="form-control" required></textarea>
+                            <textarea id="reason" name="reason" rows="4" class="form-control" cols="50" required></textarea>
+                            <div class="error提示" id="reasonError">请填写请假原因（不能为空）</div>
                         </div>
                         <div class="mt-3 text-end">
                             <!-- 使用style.css中的btn-custom，并结合Bootstrap颜色类 -->
