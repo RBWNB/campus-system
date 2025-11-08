@@ -25,4 +25,5 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     @Query("SELECT COUNT(c) > 0 FROM Course c WHERE c.id = :courseId AND c.teacher.user.username = :teacherUsername")
     boolean existsByIdAndTeacherUsername(@Param("courseId") Long courseId,
                                          @Param("teacherUsername") String teacherUsername);
+    List<Course> findByCodeContainingOrNameContaining(String codeQuery, String nameQuery);
 }

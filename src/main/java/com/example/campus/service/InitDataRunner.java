@@ -1,6 +1,6 @@
 package com.example.campus.service;
 
-import com.example.campus.entity.Role; // 🔥 必须导入独立的 Role 枚举
+import com.example.campus.entity.Role; //
 import com.example.campus.entity.*;
 import com.example.campus.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +26,7 @@ public class InitDataRunner {
                            CourseRepository courseRepo,
                            ClassroomRepository classroomRepo,
                            GradeRepository gradeRepo,
+                           CourseSelectionRepository selectionRepo,
                            AnnouncementRepository announcementRepo,
                            LeaveRepository leaveRepo,
                            ScheduleRepository scheduleRepo) {
@@ -35,7 +36,7 @@ public class InitDataRunner {
                 User admin = new User();
                 admin.setUsername("admin");
                 admin.setPassword(passwordEncoder.encode("admin123"));
-                admin.setRole(Role.ADMIN); // 🔥 无前缀，直接用独立枚举
+                admin.setRole(Role.ADMIN); //  无前缀，直接用独立枚举
                 admin.setName("系统管理员");
                 admin.setEmail("admin@example.com");
                 admin.setCreatedAt(Timestamp.from(Instant.now()));
@@ -49,7 +50,7 @@ public class InitDataRunner {
                 teacherUser = new User();
                 teacherUser.setUsername("teacher");
                 teacherUser.setPassword(passwordEncoder.encode("teacher123"));
-                teacherUser.setRole(Role.TEACHER); // 🔥 独立枚举
+                teacherUser.setRole(Role.TEACHER); //  独立枚举
                 teacherUser.setName("张老师");
                 teacherUser.setEmail("teacher@example.com");
                 teacherUser.setCreatedAt(Timestamp.from(Instant.now()));
@@ -85,7 +86,7 @@ public class InitDataRunner {
                 studentUser = new User();
                 studentUser.setUsername("student");
                 studentUser.setPassword(passwordEncoder.encode("student123"));
-                studentUser.setRole(Role.STUDENT); // 🔥 独立枚举
+                studentUser.setRole(Role.STUDENT); //  独立枚举
                 studentUser.setName("李同学");
                 studentUser.setEmail("stu@example.com");
                 studentUser.setCreatedAt(Timestamp.from(Instant.now()));
