@@ -14,11 +14,12 @@ public class Teacher {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 与 User 一对一关联：user_id 为外键，非空且唯一
     @OneToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", unique = true, nullable = false)
     private User user;
 
-    @Column(name = "teacher_no", unique = true)
+    @Column(name = "teacher_no", unique = true, nullable = false)
     private String teacherNo;
 
     private String title;
