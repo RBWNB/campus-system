@@ -1,3 +1,4 @@
+
 <!-- src/main/resources/static/admin/users.html -->
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -8,7 +9,14 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="/css/style.css" rel="stylesheet">
+    <style>
+        /* 提示样式：红色、小字体、默认隐藏 */
+        .tip { color: red; font-size: 12px; display: none; margin-left: 8px; }
+        input:focus { outline: 1px solid #007bff; }
+    </style>
 </head>
+
+
 <body>
 <!-- 导航栏 -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
@@ -125,6 +133,7 @@
     </div>
 </div>
 
+
 <!-- 添加/编辑用户模态框 -->
 <div class="modal fade" id="userModal" tabindex="-1">
     <div class="modal-dialog">
@@ -134,28 +143,37 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="userForm">
+                <form id="userForm" action="提交接口" method="post">
                     <input type="hidden" id="userId">
 
+                    <!-- 用户名输入框 + 提示 -->
                     <div class="mb-3">
                         <label for="username" class="form-label">用户名:</label>
-                        <input type="text" class="form-control" id="username" required>
+                        <input type="text" class="form-control" id="username" ame="username" placeholder="最多16字符" required>
+                        <span class="tip" id="usernameTip">用户名最多16个字符</span>
                     </div>
 
+                    <!-- 姓名输入框 + 提示 -->
                     <div class="mb-3">
                         <label for="name" class="form-label">姓名:</label>
-                        <input type="text" class="form-control" id="name">
+                        <input type="text" class="form-control" id="name"  name="name" placeholder="2-4个汉字">
+                        <span class="tip" id="nameTip">姓名必须为2-4个汉字</span>
                     </div>
 
+                    <!-- 邮箱输入框 + 提示 -->
                     <div class="mb-3">
                         <label for="email" class="form-label">邮箱:</label>
-                        <input type="email" class="form-control" id="email">
+                        <input type="email" class="form-control" id="email"  name="email" placeholder="含@且@前不超过20字符">
+                        <span class="tip" id="emailTip">邮箱格式错误（需含@且@前1-20字符）</span>
                     </div>
 
+                    <!-- 密码输入框 + 提示 -->
                     <div class="mb-3">
                         <label for="password" class="form-label">密码:</label>
-                        <input type="password" class="form-control" id="password" required>
+                        <input type="password" class="form-control" id="password"  name="password" placeholder="需同时包含字母和数字" required>
+                        <span class="tip" id="pwdTip">密码必须同时包含字母和数字</span>
                     </div>
+
 
                     <div class="mb-3">
                         <label for="role" class="form-label">角色:</label>
@@ -407,6 +425,82 @@
                 window.location.href = '/login.html';
             });
     };
+
+    // 获取元素
+    const form = document.getElementById('userForm');
+    const nameInput = document.getElementById('name');
+    const emailInput = document.getElementById('email');
+    const pwdInput = document.getElementById('password');
+    const usernameInput = document.getElementById('username');
+
+    // 姓名验证：2-4个汉字
+    function checkName() {
+        const reg = /^[\u4e00-\u9fa5]{2,4}$/;
+        const tip = document.getElementById('nameTip');
+        if (!reg.test(nameInput.value.trim())) {
+            tip.style.display = 'inline';
+            return false;
+        }
+        tip.style.display = 'none';
+        return true;
+    }
+
+    // 邮箱验证：含@且@前1-20字符
+    function checkEmail() {
+        const reg = /^.{1,20}@.+$/;
+        const tip = document.getElementById('emailTip');
+        if (!reg.test(emailInput.value.trim())) {
+            tip.style.display = 'inline';
+            return false;
+        }
+        tip.style.display = 'none';
+        return true;
+    }
+
+    // 密码验证：同时含字母和数字
+    function checkPwd() {
+        const reg = /^(?=.*[a-zA-Z])(?=.*\d).+$/;
+        const tip = document.getElementById('pwdTip');
+        if (!reg.test(pwdInput.value.trim())) {
+            tip.style.display = 'inline';
+            return false;
+        }
+        tip.style.display = 'none';
+        return true;
+    }
+
+    // 用户名验证：最多16字符
+    function checkUsername() {
+        const tip = document.getElementById('usernameTip');
+        if (usernameInput.value.trim().length > 16) {
+            tip.style.display = 'inline';
+            return false;
+        }
+        tip.style.display = 'none';
+        return true;
+    }
+
+    // 绑定输入事件（实时验证）
+    nameInput.addEventListener('input', checkName);
+    emailInput.addEventListener('input', checkEmail);
+    pwdInput.addEventListener('input', checkPwd);
+    usernameInput.addEventListener('input', checkUsername);
+
+    // 表单提交验证（防止绕过前端）
+    form.addEventListener('submit', function(e) {
+        const isNameValid = checkName();
+        const isEmailValid = checkEmail();
+        const isPwdValid = checkPwd();
+        const isUsernameValid = checkUsername();
+
+        // 有一项不符合则阻止提交
+        if (!isNameValid || !isEmailValid || !isPwdValid || !isUsernameValid) {
+            e.preventDefault();
+            alert('请修正输入错误后再提交！');
+        }
+    });
+
+
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
