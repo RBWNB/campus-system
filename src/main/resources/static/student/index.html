@@ -23,6 +23,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
+                    <!-- 首页链接应该指向学生工作台 -->
                     <a class="nav-link active" href="/student/index.html">
                         <i class="fas fa-home me-1"></i>首页
                     </a>
@@ -79,13 +80,13 @@
         </div>
     </div>
 
-    <!-- 置顶公告 -->
+    <!-- 公告栏 -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-light py-3">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-bullhorn text-success me-2"></i>置顶公告
+                        <i class="fas fa-bullhorn text-success me-2"></i>公告栏
                     </h5>
                 </div>
                 <div class="card-body">
@@ -205,107 +206,220 @@
 </footer>
 
 <script>
-    // 退出登录
-    function logout() {
-        localStorage.removeItem('credentials');
-        window.location.href = '/login.html';
+    // Helper function to get credentials from localStorage
+    function getCredentials() {
+        return localStorage.getItem('credentials');
     }
 
-    // 置顶公告
-    function loadAnnouncements(credentials) {
-        fetch('/api/announcements/top', {
-            method: 'GET',
-            headers: {
-                //使用正确的 'credentials' 凭据，并添加 'Basic'
-                'Authorization': 'Basic ' + btoa(credentials)
-            }
-        })
-            .then(res => {
-                // 明确处理 204 No Content (无置顶) 状态
-                if (res.status === 200) {
-                    return res.json(); // 200 OK, 成功获取公告
-                } else if (res.status === 204) {
-                    return null; // 204 No Content, 明确表示无公告
-                } else {
-                    // 其他错误 (e.g., 401, 403, 500)
-                    throw new Error('Server returned status: ' + res.status);
-                }
-            })
-            .then(data => {
-                let html = "";
-                if (data) {
-                    // 成功获取到数据 (来自 200 OK)
-                    html = `
-                    <div class="announcement">
-                        <strong>${data.title}</strong><br>
-                        <small class="text-muted">${new Date(data.publishedAt).toLocaleString()}</small>
-                        <p>${data.content}</p>
-                    </div>`;
-                } else {
-                    // data 为 null (来自 204 No Content)
-                    html = `<p class="text-muted">暂无置顶公告。</p>`;
-                }
-                document.getElementById('announcementList').innerHTML = html;
-            })
-            .catch((error) => {
-                // 对应 fetch 失败或抛出的错误
-                console.error('Error loading announcements:', error);
-                document.getElementById('announcementList').innerHTML = `<p class="text-danger">公告加载失败</p>`;
-            });
+    // Helper function to decode credentials
+    function decodeCredentials(encoded) {
+        if (!encoded) return null;
+        try {
+            return atob(encoded); // atob decodes Base64
+        } catch (e) {
+            console.error("Failed to decode credentials:", e);
+            return null;
+        }
     }
 
-    // 合并和清理 window.onload 逻辑
-    window.onload = function() {
-        const credentials = localStorage.getItem('credentials');
-        if (!credentials) {
+    // Helper function to check if user is logged in and has valid role
+    function checkAuthAndRedirect() {
+        const credentialsEncoded = getCredentials(); // credentials are stored as "username:password"
+
+        // If no credentials, redirect to login
+        if (!credentialsEncoded) {
+            console.log("No credentials found, redirecting to login.");
             window.location.href = '/login.html';
             return;
         }
 
-        // 1. 页面加载时, 首先调用已修复的加载公告函数
-        loadAnnouncements(credentials);
+        const [username, password] = decodeCredentials(credentialsEncoded).split(':');
+        if (!username || !password) {
+            console.log("Invalid credentials format, redirecting to login.");
+            window.location.href = '/login.html';
+            return;
+        }
 
-        // 2. 然后获取当前用户信息并执行权限检查
+        const basicAuthHeader = 'Basic ' + btoa(username + ':' + password); // Re-encode for API call
+
+        // Get current user info to verify role and redirect if necessary
         fetch('/api/auth/me', {
             method: 'GET',
             headers: {
-                'Authorization': 'Basic ' + btoa(credentials)
+                'Authorization': basicAuthHeader
             }
         })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    // If 401 (Unauthorized) or any other error, clear credentials and redirect to login
+                    console.error(`Authentication failed: ${response.status}`);
+                    localStorage.removeItem('credentials'); // Clear invalid credentials
+                    window.location.href = '/login.html';
+                    return null; // Prevent further processing
+                }
+                return response.json();
+            })
             .then(data => {
-                const role = data.role[0].authority; // 获取用户角色
+                if (!data) return; // Already redirected
 
-                // 检查当前页面是否匹配用户权限
+                const role = data.role && data.role.length > 0 ? data.role[0].authority : null;
                 const currentPath = window.location.pathname;
 
-                // 学生只能访问学生相关页面
+                console.log(`User role: ${role}, Current path: ${currentPath}`);
+
+                // --- Role-based redirection logic ---
+                // This is the crucial part to prevent unauthorized access and ensure correct landing pages
+
+                // Student specific logic
                 if (role === 'STUDENT') {
-                    const allowedPaths = ['/student/', '/announcements.html', '/index.html'];
-                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
+                    const studentAllowedPrefixes = ['/student/', '/announcements.html', '/index.html']; // /index.html might be a common entry
+                    // If the current path is NOT a student-allowed path, redirect to student index
+                    // The logic here should be: if the current page is not intended for students, redirect them
+                    // For student index page (/student/index.html), it should be allowed.
+                    // If this page IS /student/index.html, we don't need to redirect.
+                    // The "flash and redirect" might happen if the initial load was a generic /index.html
+                    // and then this check redirects.
+                    // A common strategy is to always redirect to the role-specific index on login.
+                    // For this file (index.html), if it's student specific, then it's fine.
+                    // If the user is STUDENT and is on a page like /teacher/ or /admin/, they should be redirected.
+                    // The provided code checks if allowedPaths.some(path => currentPath.startsWith(path)).
+                    // If currentPath is /student/index.html, it starts with /student/. Allowed.
+                    // If currentPath is /login.html, it's not in allowedPaths, so it would redirect. (But we already checked for no credentials)
+
+                    // If the user is a student, and they landed on THIS page (/student/index.html)
+                    // and it's not the student's index, redirect.
+                    // However, since this is the student's index.html, this page should be allowed.
+                    // Let's refine the redirection: ensure students ONLY access student paths.
+                    const isStudentPath = currentPath.startsWith('/student/');
+                    const isAnnouncements = currentPath === '/announcements.html';
+                    const isCommonIndex = currentPath === '/index.html'; // If index.html is a common entry
+
+                    if (!(isStudentPath || isAnnouncements || isCommonIndex)) {
+                        console.log("User is STUDENT but on a non-student path. Redirecting to student index.");
                         window.location.href = '/student/index.html';
+                        return;
                     }
-                }
+                    // If the current page is the generic /index.html and user is student, redirect to student index
+                    if (currentPath === '/index.html') {
+                        console.log("User is STUDENT on generic index.html. Redirecting to student index.");
+                        window.location.href = '/student/index.html';
+                        return;
+                    }
 
-                // 教师只能访问教师相关页面
-                if (role === 'TEACHER') {
-                    const allowedPaths = ['/teacher/', '/announcements.html', '/index.html'];
-                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
+                } else if (role === 'TEACHER') {
+                    // Redirect teachers away from student pages if they somehow land here directly
+                    // Or if this page is not for teachers, redirect them to teacher index.
+                    const isTeacherPath = currentPath.startsWith('/teacher/');
+                    const isAnnouncements = currentPath === '/announcements.html';
+                    const isCommonIndex = currentPath === '/index.html';
+
+                    if (!(isTeacherPath || isAnnouncements || isCommonIndex)) {
+                        console.log("User is TEACHER but on a non-teacher path. Redirecting to teacher index.");
+                        window.location.href = '/teacher/index.html'; // Assuming teacher index is /teacher/index.html
+                        return;
+                    }
+                    // If the user is a teacher and landed on generic /index.html, redirect to teacher index
+                    if (currentPath === '/index.html') {
+                        console.log("User is TEACHER on generic index.html. Redirecting to teacher index.");
                         window.location.href = '/teacher/index.html';
+                        return;
+                    }
+
+                } else if (role === 'ADMIN') {
+                    // Admin has broader access, but if there's an admin specific index and they landed on generic index.html
+                    const isAdminPath = currentPath.startsWith('/admin/');
+                    const isAnnouncements = currentPath === '/announcements.html';
+                    const isCommonIndex = currentPath === '/index.html';
+
+                    if (!(isAdminPath || isAnnouncements || isCommonIndex)) {
+                        console.log("User is ADMIN but on a non-admin path. Redirecting to admin index.");
+                        window.location.href = '/admin/index.html'; // Assuming admin index is /admin/index.html
+                        return;
+                    }
+                    // If the user is an admin and landed on generic /index.html, redirect to admin index
+                    if (currentPath === '/index.html') {
+                        console.log("User is ADMIN on generic index.html. Redirecting to admin index.");
+                        window.location.href = '/admin/index.html';
+                        return;
+                    }
+
+                } else {
+                    // Unknown role or no role, default to a common page or login
+                    console.warn("User has unknown role or no role.");
+                    // For safety, redirect to login if role is not recognized for redirection logic
+                    // Or redirect to a generic index if this file isn't the intended role-specific index
+                    if (currentPath !== '/index.html') { // If not already on generic index
+                        window.location.href = '/index.html'; // Redirect to common entry
                     }
                 }
 
-                // 管理员可以访问所有页面
-                if (role === 'ADMIN') {
-                    // 不做限制
-                }
+                // If all checks pass and no redirection occurred, proceed to load page content
+                console.log("Authentication and role checks passed. Loading page content.");
+                loadAnnouncements(); // Load announcements if this is the correct page to do so.
             })
             .catch(error => {
-                console.error('获取用户信息失败:', error);
+                console.error('Error fetching user info:', error);
+                // On fetch error, clear credentials and redirect to login
+                localStorage.removeItem('credentials');
                 window.location.href = '/login.html';
             });
-    };
+    }
 
+    // --- Announcement Loading Function ---
+    function loadAnnouncements(){
+        const credentials = getCredentials();
+        if (!credentials) {
+            // Should not happen if checkAuthAndRedirect works, but as a safeguard
+            console.log("Cannot load announcements: no credentials.");
+            return;
+        }
+
+        fetch('/api/announcements', {
+            method: 'GET',
+            headers: { 'Authorization': 'Basic ' + btoa(credentials) } // Ensure using correct auth format
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) { // Unauthorized
+                        console.log("Unauthorized to load announcements, redirecting to login.");
+                        localStorage.removeItem('credentials');
+                        window.location.href = '/login.html';
+                    }
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                let html = "";
+                if (data && data.length > 0) {
+                    data.forEach(a => {
+                        html += `<div class="mb-2"><strong>${a.title}</strong><br>${a.content}</div><hr class="my-2">`;
+                    });
+                } else {
+                    html = "<p>暂无最新公告。</p>";
+                }
+                document.getElementById('announcementList').innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Error loading announcements:', error);
+                document.getElementById('announcementList').innerHTML = '<p class="text-danger">加载公告失败，请稍后重试。</p>';
+            });
+    }
+
+    // --- Event Listener for Page Load ---
+    // Use DOMContentLoaded if you want to execute scripts before all resources (like images) are loaded,
+    // or window.onload to ensure everything is ready. For this logic, either is fine, but consistency is key.
+    // Let's stick to window.onload as per original intent and for simplicity.
+    window.onload = checkAuthAndRedirect;
+
+
+    // --- Logout Function (remains the same) ---
+    function logout() {
+        localStorage.removeItem('credentials');
+        // Optionally, send a server-side logout request if needed
+        // fetch('/api/logout', { method: 'POST' });
+        window.location.href = '/login.html';
+    }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
