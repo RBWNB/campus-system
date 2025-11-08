@@ -9,12 +9,13 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- 引入 Font Awesome CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- 引入我们统一的 style.css -->
+    <!-- 引入统一的 style.css -->
     <link href="/css/style.css" rel="stylesheet">
     <style>
         .schedule-table th, .schedule-table td {
             text-align: center;
             vertical-align: middle;
+            min-height: 80px;
         }
 
         .schedule-item {
@@ -28,6 +29,11 @@
         .time-slot {
             font-weight: bold;
             color: #2c3e50;
+        }
+
+        .empty-course {
+            color: #95a5a6;
+            font-style: italic;
         }
     </style>
 </head>
@@ -150,6 +156,7 @@
         localStorage.removeItem('credentials');
         window.location.href = '/login.html';
     }
+
     // 页面加载时获取课表信息
     window.onload = function() {
         const credentials = localStorage.getItem('credentials');
@@ -176,7 +183,6 @@
             })
             .then(data => {
                 const role = data.role[0].authority;
-
                 const currentPath = window.location.pathname;
 
                 // 学生权限校验
@@ -206,7 +212,7 @@
             });
     };
 
-    // 加载学期信息 - 改为固定选项
+    // 加载学期信息 - 固定选项
     function loadTerms() {
         const terms = [
             { id: 1, name: "大一上" },
@@ -230,10 +236,11 @@
         });
     }
 
-    // 加载课表信息
+    // 加载课表信息 - 修正为教师接口
     function loadSchedule() {
         const termId = document.getElementById('termSelect').value;
-        const url = termId ? `/api/student/schedule?termId=${termId}` : '/api/student/schedule';
+        // 教师端接口改为 /api/teacher/schedule，与学生端区分
+        const url = termId ? `/api/teacher/schedule?termId=${termId}` : '/api/teacher/schedule';
 
         fetch(url, {
             method: 'GET',
@@ -257,65 +264,87 @@
             });
     }
 
-
-    // 渲染课表
+    // 渲染课表 - 核心完善
     function renderSchedule(schedules) {
         const tbody = document.getElementById('scheduleTableBody');
         tbody.innerHTML = '';
 
+        // 固定每日时间段（与表格第一列对应）
         const timeSlots = [
             '08:00-09:35', '09:50-11:25', '11:40-13:15', '13:30-15:05',
             '15:20-16:55', '17:10-18:45', '19:00-20:35'
         ];
 
+        // 初始化课表映射：key=星期几(1-7)，value=数组(7个时间段)，每个时间段存对应课程
         const scheduleMap = {};
-        for (let i = 1; i <= 7; i++) {
-            scheduleMap[i] = Array(timeSlots.length).fill(null).map(() => []);
+        for (let weekday = 1; weekday <= 7; weekday++) {
+            scheduleMap[weekday] = Array(timeSlots.length).fill(null).map(() => []);
         }
 
+        // 填充课程数据到映射中
         if (schedules && schedules.length > 0) {
             schedules.forEach(schedule => {
-                const weekday = schedule.weekday;
+                const weekday = schedule.weekday; // 数据库中1=周一，2=周二...7=周日
                 const timeSlotIndex = getTimeSlotIndex(schedule.startTime, schedule.endTime);
 
-                if (weekday && timeSlotIndex >= 0) {
+                // 仅当星期几和时间段索引有效时，添加课程
+                if (weekday && weekday >= 1 && weekday <= 7 && timeSlotIndex >= 0 && timeSlotIndex < timeSlots.length) {
                     scheduleMap[weekday][timeSlotIndex].push(schedule);
                 }
             });
         }
 
+        // 渲染每行（每个时间段）
         timeSlots.forEach((time, index) => {
             const row = document.createElement('tr');
+
+            // 时间段单元格
             const timeCell = document.createElement('td');
             timeCell.innerHTML = `<div class="time-slot">${time}</div>`;
             row.appendChild(timeCell);
 
-            for (let day = 1; day <= 7; day++) {
+            // 周一到周日的单元格（1-7对应周一到周日）
+            for (let weekday = 1; weekday <= 7; weekday++) {
                 const cell = document.createElement('td');
-                const courses = scheduleMap[day][index];
+                const courses = scheduleMap[weekday][index];
 
+                // 有课程则渲染课程信息，无课程则显示"-"
                 if (courses.length > 0) {
                     courses.forEach(course => {
                         const courseDiv = document.createElement('div');
                         courseDiv.className = 'schedule-item mb-1';
+                        // 课程名称取自courses表的name，教室取自classroom表的name
                         courseDiv.innerHTML = `
-                                            <div class="fw-bold">${course.course.name}</div>
-                                            <div class="small">${course.classroom ? course.classroom.name : '待定'}</div>
-                                            <div class="small text-muted">${course.startTime}-${course.endTime}</div>
-                                        `;
+                            <div class="fw-bold">${course.course?.name || '未知课程'}</div>
+                            <div class="small">${course.classroom?.name || '待定'}</div>
+                            <div class="small text-muted">${course.startTime}-${course.endTime}</div>
+                        `;
                         cell.appendChild(courseDiv);
                     });
+                } else {
+                    cell.innerHTML = '<div class="empty-course">-</div>';
                 }
+
                 row.appendChild(cell);
             }
+
             tbody.appendChild(row);
         });
     }
 
-    // 查找时间段的索引 (需要完善逻辑)
+    // 完善时间段匹配逻辑：根据课程的startTime和endTime匹配对应的时间段索引
     function getTimeSlotIndex(startTime, endTime) {
-        // 这是一个简化的示例，实际应用中需要匹配时间段
-        return 0; // Placeholder
+        // 与timeSlots数组顺序一致的时间段字符串
+        const timeSlotStrings = [
+            '08:00-09:35', '09:50-11:25', '11:40-13:15', '13:30-15:05',
+            '15:20-16:55', '17:10-18:45', '19:00-20:35'
+        ];
+
+        // 拼接课程的时间段字符串（与timeSlotStrings格式一致）
+        const courseTimeString = `${startTime}-${endTime}`;
+
+        // 返回匹配到的索引，未匹配到返回-1
+        return timeSlotStrings.findIndex(slot => slot === courseTimeString);
     }
 </script>
 <!-- 引入 Bootstrap 5 JS -->
