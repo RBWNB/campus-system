@@ -93,6 +93,6 @@ public class StudentController {
         User u = userRepo.findByUsername(ud.getUsername()).orElse(null);
         Student s = studentRepo.findByUserId(u.getId()).orElse(null);
         if (s == null) return ResponseEntity.badRequest().body("学生信息未录入");
-        return ResponseEntity.ok(leaveRepo.findByStudentId(s.getId()));
+        return ResponseEntity.ok(leaveRepo.findByStudent_Id(s.getId()));
     }
 }
