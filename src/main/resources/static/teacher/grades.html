@@ -119,18 +119,23 @@
                     <select class="form-select" id="studentSelect"></select>
                 </div>
 
+                <!-- 录入成绩模态框中的成绩输入框（修改后） -->
                 <div class="mb-3">
                     <label for="scoreInput" class="form-label">成绩:</label>
-                    <input type="number" class="form-control" id="scoreInput" min="0" max="100" step="0.1">
+                    <input type="number" class="form-control" id="scoreInput"
+                           min="0" max="100" step="0.1"
+                           placeholder="请输入0-100之间的分数"
+                           oninput="validateScore(this)">
+
                 </div>
 
                 <div class="mb-3">
                     <label for="gradeTypeSelect" class="form-label">成绩类型:</label>
                     <select class="form-select" id="gradeTypeSelect">
-                        <option value="ORDINARY">平时成绩</option>
-                        <option value="MIDTERM">期中成绩</option>
-                        <option value="FINAL">期末成绩</option>
-                        <option value="TOTAL">总评成绩</option>
+                        <option value="平时成绩">平时成绩</option>
+                        <option value="期中成绩">期中成绩</option>
+                        <option value="期末成绩">期末成绩</option>
+                        <option value="总评成绩">总评成绩</option>
                     </select>
                 </div>
             </div>
@@ -217,7 +222,6 @@
         new bootstrap.Modal(document.getElementById('gradeModal')).show();
     }
 
-    // 加载课程的学生列表 (需要 API 实现)
     function loadStudentsForCourse(courseId) {
         const studentSelect = document.getElementById('studentSelect');
         studentSelect.innerHTML = '<option value="">加载中...</option>';
@@ -241,9 +245,15 @@
                 return response.json();
             })
             .then(students => {
+                console.log('获取到的学生数据:', students); // 添加调试信息
                 studentSelect.innerHTML = ''; // 清空加载提示
+
                 if (students && students.length > 0) {
-                    students.forEach(student => {
+                    // 使用 Set 去重
+                    const uniqueStudents = removeDuplicateStudents(students);
+                    console.log('去重后的学生数据:', uniqueStudents); // 调试信息
+
+                    uniqueStudents.forEach(student => {
                         const option = document.createElement('option');
                         option.value = student.id;
                         option.textContent = `${student.user.name} (${student.studentNo})`;
@@ -259,25 +269,75 @@
             });
     }
 
-    // 保存成绩
+    // 去重函数 - 根据学生ID去重
+    function removeDuplicateStudents(students) {
+        const seen = new Set();
+        return students.filter(student => {
+            if (seen.has(student.id)) {
+                console.log('发现重复学生:', student); // 调试信息
+                return false;
+            }
+            seen.add(student.id);
+            return true;
+        });
+    }
+    // 成绩输入验证
+    function validateScore(input) {
+        const value = parseFloat(input.value);
+        if (isNaN(value)) {
+            input.setCustomValidity('请输入有效的数字');
+        } else if (value < 0 || value > 100) {
+            input.setCustomValidity('成绩必须在0-100之间');
+        } else {
+            input.setCustomValidity('');
+        }
+    }
+
+    // 保存成绩（修改后）
     function saveGrade() {
         const courseId = document.getElementById('selectedCourseId').value;
         const studentId = document.getElementById('studentSelect').value;
-        const score = document.getElementById('scoreInput').value;
-        const gradeType = document.getElementById('gradeTypeSelect').value;
+        const scoreInput = document.getElementById('scoreInput');
+        const scoreValue = scoreInput.value.trim();
+        const gradeTypeSelect = document.getElementById('gradeTypeSelect');
+        const gradeType = gradeTypeSelect.value;
 
+        // 1. 验证学生选择
         if (!studentId) {
             alert('请选择学生！');
             return;
         }
 
+        // 2. 验证成绩输入
+        if (scoreValue === '') {
+            alert('成绩不能为空！');
+            scoreInput.focus();
+            return;
+        }
+
+        const score = parseFloat(scoreValue);
+        if (isNaN(score)) {
+            alert('请输入有效的数字！');
+            scoreInput.focus();
+            return;
+        }
+
+        // 强制限制范围
+        if (score < 0 || score > 100) {
+            alert('请输入0-100之间的有效成绩！');
+            scoreInput.focus();
+            return;
+        }
+
+        // 3. 构造请求数据
         const gradeData = {
             courseId: parseInt(courseId),
             studentId: parseInt(studentId),
-            score: parseFloat(score),
-            gradeType: gradeType
+            score: parseFloat(score.toFixed(1)), // 强制保留1位小数
+            gradeType: gradeType // 直接使用中文类型
         };
 
+        // 4. 提交数据到后端
         fetch('/api/teacher/grades', {
             method: 'POST',
             headers: {
@@ -289,17 +349,20 @@
             .then(response => {
                 if (!response.ok) {
                     if (response.status === 401) window.location.href = '/login.html';
-                    throw new Error('Network response was not ok');
+                    throw new Error('网络请求失败');
                 }
                 return response.json();
             })
             .then(data => {
-                alert('成绩保存成功');
+                alert('成绩保存成功！');
+                // 清空输入框，方便继续录入
+                scoreInput.value = '';
+                // 关闭模态框
                 bootstrap.Modal.getInstance(document.getElementById('gradeModal')).hide();
             })
             .catch(error => {
                 console.error('保存成绩失败:', error);
-                alert('保存成绩失败');
+                alert('保存成绩失败，请稍后重试！');
             });
     }
 

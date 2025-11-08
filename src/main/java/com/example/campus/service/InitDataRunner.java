@@ -139,7 +139,7 @@ public class InitDataRunner {
                     grade1.setStudent(student);
                     grade1.setCourse(c1);
                     grade1.setScore(BigDecimal.valueOf(85.5));
-                    grade1.setGradeType("MIDTERM");
+                    grade1.setGradeType("期中成绩");
                     grade1.setUpdatedAt(Timestamp.from(Instant.now()));
                     gradeRepo.save(grade1);
 
@@ -147,7 +147,7 @@ public class InitDataRunner {
                     grade2.setStudent(student);
                     grade2.setCourse(c1);
                     grade2.setScore(BigDecimal.valueOf(90.0));
-                    grade2.setGradeType("ORDINARY");
+                    grade2.setGradeType("平时成绩");
                     grade2.setUpdatedAt(Timestamp.from(Instant.now()));
                     gradeRepo.save(grade2);
 
@@ -155,7 +155,7 @@ public class InitDataRunner {
                     grade3.setStudent(student);
                     grade3.setCourse(c2);
                     grade3.setScore(BigDecimal.valueOf(92.0));
-                    grade3.setGradeType("MIDTERM");
+                    grade3.setGradeType("期中成绩");
                     grade3.setUpdatedAt(Timestamp.from(Instant.now()));
                     gradeRepo.save(grade3);
 
@@ -163,7 +163,7 @@ public class InitDataRunner {
                     grade4.setStudent(student);
                     grade4.setCourse(c3);
                     grade4.setScore(BigDecimal.valueOf(88.5));
-                    grade4.setGradeType("MIDTERM");
+                    grade4.setGradeType("期中成绩");
                     grade4.setUpdatedAt(Timestamp.from(Instant.now()));
                     gradeRepo.save(grade4);
                 }
