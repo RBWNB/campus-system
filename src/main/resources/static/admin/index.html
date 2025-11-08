@@ -85,21 +85,6 @@
         </div>
     </div>
 
-    <!-- 公告栏 -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-light py-3">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-bullhorn text-primary me-2"></i>公告栏
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div id="announcementList"></div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- 功能卡片 -->
     <div class="row g-4">
@@ -211,22 +196,6 @@
 </footer>
 
 <script>
-    //公告栏
-    function loadAnnouncements(){
-        fetch('/api/announcements', {
-            method: 'GET',
-            headers: { 'Authorization': localStorage.getItem('auth') }
-        })
-            .then(res => res.json())
-            .then(data => {
-                let html = "";
-                data.forEach(a => {
-                    html += `<div class="announcement"><strong>${a.title}</strong><br>${a.content}</div><hr>`;
-                });
-                document.getElementById('announcementList').innerHTML = html;
-            });
-    }
-    loadAnnouncements();
 
   // 获取存储的凭据
   function getCredentials() {
