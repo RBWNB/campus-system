@@ -12,7 +12,8 @@ import java.sql.Timestamp;
 @Data
 @NoArgsConstructor
 public class Course {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(unique=true)
@@ -23,6 +24,11 @@ public class Course {
 
     @Lob
     private String description;
+
+    // 修改为关联 Teacher 实体
+    @ManyToOne
+    @JoinColumn(name = "teacher_id")
+    private Teacher teacher;
 
     @Column(name="created_at")
     private Timestamp createdAt;
