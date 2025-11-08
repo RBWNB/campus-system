@@ -22,7 +22,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="/admin/index.html">
+                    <a class="nav-link" href="/admin/index.html"> <!-- Corrected path -->
                         <i class="fas fa-home me-1"></i>首页
                     </a>
                 </li>
@@ -165,19 +165,17 @@
     </div>
 </div>
 
-
-
 <script>
-    // 页面加载时获取所有课程信息
-    window.onload = function() {
-        loadCourses();
+    // 获取存储的凭据
+    function getCredentials() {
+        return localStorage.getItem('credentials') || '';
+    }
 
-        // 表单提交事件
-        document.getElementById('courseForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            saveCourse();
-        });
-    };
+    // 退出登录
+    function logout() {
+        localStorage.removeItem('credentials');
+        window.location.href = '/login.html';
+    }
 
     // 加载课程信息
     function loadCourses(query = '') {
@@ -189,7 +187,13 @@
                 'Authorization': 'Basic ' + btoa(getCredentials())
             }
         })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) window.location.href = '/login.html';
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
                 const tbody = document.querySelector('#coursesTable tbody');
                 tbody.innerHTML = '';
@@ -221,6 +225,8 @@
             })
             .catch(error => {
                 console.error('获取课程信息失败:', error);
+                const tbody = document.querySelector('#coursesTable tbody');
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">加载课程信息失败，请稍后重试。</td></tr>';
             });
     }
 
@@ -240,14 +246,19 @@
 
     // 编辑课程
     function editCourse(courseId) {
-        // 获取课程详细信息并填充到表单中
         fetch(`/api/courses/${courseId}`, {
             method: 'GET',
             headers: {
                 'Authorization': 'Basic ' + btoa(getCredentials())
             }
         })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) window.location.href = '/login.html';
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(course => {
                 document.getElementById('modalTitle').textContent = '编辑课程';
                 document.getElementById('courseId').value = course.id;
@@ -257,15 +268,12 @@
                 document.getElementById('description').value = course.description || '';
                 new bootstrap.Modal(document.getElementById('courseModal')).show();
             })
-            .catch(error => {
-                console.error('获取课程信息失败:', error);
-            });
+            .catch(error => console.error('获取课程信息失败:', error));
     }
 
     // 删除课程
     function deleteCourse(courseId) {
         if (confirm('确定要删除这个课程吗？')) {
-            // 调用API删除课程
             fetch(`/api/admin/courses/${courseId}`, {
                 method: 'DELETE',
                 headers: {
@@ -277,7 +285,7 @@
                         alert('课程删除成功');
                         loadCourses(); // 重新加载课程列表
                     } else {
-                        alert('课程删除失败');
+                        response.text().then(text => alert('课程删除失败: ' + text));
                     }
                 })
                 .catch(error => {
@@ -309,13 +317,16 @@
             body: JSON.stringify(courseData)
         })
             .then(response => {
-                if (response.ok) {
-                    alert('课程信息保存成功');
-                    bootstrap.Modal.getInstance(document.getElementById('courseModal')).hide();
-                    loadCourses(); // 重新加载课程列表
-                } else {
-                    alert('课程信息保存失败');
+                if (!response.ok) {
+                    if (response.status === 401) window.location.href = '/login.html';
+                    throw new Error('Network response was not ok');
                 }
+                return response.json();
+            })
+            .then(data => {
+                alert('课程信息保存成功');
+                bootstrap.Modal.getInstance(document.getElementById('courseModal')).hide();
+                loadCourses(); // 重新加载课程列表
             })
             .catch(error => {
                 console.error('保存课程信息失败:', error);
@@ -323,25 +334,7 @@
             });
     }
 
-    // 获取存储的凭据
-    function getCredentials() {
-        return localStorage.getItem('credentials') || '';
-    }
-
-    // 退出登录
-    function logout() {
-        localStorage.removeItem('credentials');
-        window.location.href = '/login.html';
-    }
-
-    // 回车搜索
-    document.getElementById('searchInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            searchCourses();
-        }
-    });
-
-    // 权限检查
+    // --- 合并后的 window.onload ---
     window.onload = function() {
         const credentials = localStorage.getItem('credentials');
         if (!credentials) {
@@ -356,33 +349,39 @@
                 'Authorization': 'Basic ' + btoa(credentials)
             }
         })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/login.html';
+                    }
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
-                const role = data.role[0].authority; // 获取用户角色
+                const role = data.role[0].authority;
 
-                // 检查当前页面是否匹配用户权限
                 const currentPath = window.location.pathname;
 
-                // 学生只能访问学生相关页面
+                // 学生权限校验
                 if (role === 'STUDENT') {
                     const allowedPaths = ['/student/', '/announcements.html', '/index.html'];
                     if (!allowedPaths.some(path => currentPath.startsWith(path))) {
                         window.location.href = '/student/index.html';
                     }
                 }
-
-                // 教师只能访问教师相关页面
+                // 教师权限校验
                 if (role === 'TEACHER') {
                     const allowedPaths = ['/teacher/', '/announcements.html', '/index.html'];
                     if (!allowedPaths.some(path => currentPath.startsWith(path))) {
                         window.location.href = '/teacher/index.html';
                     }
                 }
+                // 管理员不做限制
+                if (role === 'ADMIN') {}
 
-                // 管理员可以访问所有页面
-                if (role === 'ADMIN') {
-                    // 不做限制
-                }
+                // 权限校验通过后，加载页面核心数据
+                loadCourses();
             })
             .catch(error => {
                 console.error('获取用户信息失败:', error);

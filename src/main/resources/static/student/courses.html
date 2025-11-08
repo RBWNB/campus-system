@@ -30,7 +30,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="/student/index.html">
+                    <a class="nav-link" href="/student/index.html"> <!-- Corrected path -->
                         <i class="fas fa-home me-1"></i>首页
                     </a>
                 </li>
@@ -162,8 +162,8 @@
         })
             .then(response => {
                 if (!response.ok) {
-                    if (response.status === 401) {
-                        window.location.href = '/login.html'; // 未登录或token过期，跳转到登录页
+                    if (response.status === 401) { // 未登录或token过期
+                        window.location.href = '/login.html';
                     }
                     throw new Error('Network response was not ok');
                 }
@@ -186,14 +186,14 @@
                     });
                 } else {
                     const row = document.createElement('tr');
-                    row.innerHTML = '<td colspan="4">暂无课程信息</td>';
+                    row.innerHTML = '<td colspan="4" class="text-center">暂无课程信息</td>';
                     tbody.appendChild(row);
                 }
             })
             .catch(error => {
                 console.error('获取课程信息失败:', error);
                 const tbody = document.querySelector('#coursesTable tbody');
-                tbody.innerHTML = '<tr><td colspan="4">加载课程信息失败，请稍后重试。</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">加载课程信息失败，请稍后重试。</td></tr>';
             });
     }
 
@@ -203,7 +203,7 @@
         loadCourses(query);
     }
 
-    // 在每个页面的 window.onload 中添加权限检查
+    // --- 合并后的 window.onload ---
     window.onload = function() {
         const credentials = localStorage.getItem('credentials');
         if (!credentials) {
@@ -211,7 +211,7 @@
             return;
         }
 
-        // 获取当前用户信息，用于权限验证
+        // 获取当前用户信息
         fetch('/api/auth/me', {
             method: 'GET',
             headers: {
@@ -221,44 +221,40 @@
             .then(response => {
                 if (!response.ok) {
                     if (response.status === 401) {
-                        window.location.href = '/login.html'; // 未登录或token过期，跳转到登录页
+                        window.location.href = '/login.html';
                     }
                     throw new Error('Network response was not ok');
                 }
                 return response.json();
             })
             .then(data => {
-                const role = data.role[0].authority; // 获取用户角色
+                const role = data.role[0].authority;
 
                 const currentPath = window.location.pathname;
 
-                // 学生只能访问学生相关页面
+                // 学生权限校验
                 if (role === 'STUDENT') {
                     const allowedPaths = ['/student/', '/announcements.html', '/index.html'];
                     if (!allowedPaths.some(path => currentPath.startsWith(path))) {
                         window.location.href = '/student/index.html';
                     }
                 }
-
-                // 教师只能访问教师相关页面
+                // 教师权限校验
                 if (role === 'TEACHER') {
                     const allowedPaths = ['/teacher/', '/announcements.html', '/index.html'];
                     if (!allowedPaths.some(path => currentPath.startsWith(path))) {
                         window.location.href = '/teacher/index.html';
                     }
                 }
+                // 管理员不做限制
+                if (role === 'ADMIN') {}
 
-                // 管理员可以访问所有页面
-                if (role === 'ADMIN') {
-                    // 不做限制
-                }
-
-                // 默认加载课程信息
+                // 权限校验通过后，加载页面核心数据
                 loadCourses();
             })
             .catch(error => {
                 console.error('获取用户信息失败:', error);
-                window.location.href = '/login.html'; // 获取用户信息失败，也跳转到登录页
+                window.location.href = '/login.html';
             });
     };
 
