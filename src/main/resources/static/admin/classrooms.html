@@ -166,10 +166,38 @@
         return localStorage.getItem('credentials') || '';
     }
 
-    // 退出登录
+    // 退出函数
     function logout() {
+        // 1. 移除本地存储的凭据
         localStorage.removeItem('credentials');
-        window.location.href = '/login.html';
+
+        // 2. 发送 POST 请求到 Spring Security 的 logout URL
+        //    Spring Security 会处理此 URL 的退出逻辑
+        fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: {
+                // 对于 Basic Auth，我们不需要发送 Authorization 头，因为我们已经删除了凭据。
+                // Spring Security 的 LogoutFilter 会处理这个 POST 请求。
+                'Content-Type': 'application/json' // POST 请求通常需要 Content-Type
+            }
+        })
+            .then(response => {
+                // 无论后端响应是 200 OK 还是 401 Unauthorized，都认为是成功退出了（或因认证丢失而跳转）
+                // 最终目的都是跳转到登录页
+                if (response.ok || response.status === 401) {
+                    console.log("Logout successful or session expired. Redirecting to login page.");
+                    window.location.href = '/login.html';
+                } else {
+                    // 发生其他非预期的错误
+                    console.error('Logout failed with status:', response.status);
+                    window.location.href = '/login.html'; // 无论如何都跳转到登录页
+                }
+            })
+            .catch(error => {
+                // 请求本身失败（网络错误等）
+                console.error('Error during logout fetch:', error);
+                window.location.href = '/login.html'; // 跳转到登录页
+            });
     }
 
     // 加载教室信息
