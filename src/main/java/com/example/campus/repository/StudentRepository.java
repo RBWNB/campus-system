@@ -1,6 +1,7 @@
 package com.example.campus.repository;
 
 import com.example.campus.entity.Student;
+import com.example.campus.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,7 +25,7 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     @Query("SELECT COALESCE(MAX(CAST(s.studentNo AS long)), '') FROM Student s")
     String findMaxStudentNo();
 
-    // 新增：原生SQL查询最大学号（解决字符串排序问题）
+    // 原生SQL查询最大学号（解决字符串排序问题）
     @Query(value = "SELECT COALESCE(MAX(CAST(student_no AS UNSIGNED)), '') FROM students", nativeQuery = true)
     String findMaxStudentNoNative();
 }

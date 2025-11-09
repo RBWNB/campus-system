@@ -1,9 +1,9 @@
-// AdminController.java
 package com.example.campus.controller;
 
 import com.example.campus.entity.Classroom;
 import com.example.campus.entity.Course;
 import com.example.campus.entity.User;
+import com.example.campus.entity.Role; // <-- 新增：导入 Role 类
 import com.example.campus.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -13,7 +13,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -25,6 +28,7 @@ public class AdminController {
     @Autowired private ScheduleRepository scheduleRepo;
     @Autowired private StudentRepository studentRepo;
     @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private UserRepository userRepository;
 
     @PostMapping("/users")
     public ResponseEntity<?> createUser(@RequestBody User u) {
@@ -37,18 +41,117 @@ public class AdminController {
         return ResponseEntity.ok(u);
     }
 
+
     @GetMapping("/users")
+    public ResponseEntity<?> getAllUsers(
+            @RequestParam(value = "q", required = false) String query,
+            @RequestParam(value = "role", required = false) String roleString // 已修改：接收 role 字符串
+    ) {
+        List<User> users;
+        String trimmedQuery = (query != null) ? query.trim() : null;
+        String trimmedRoleString = (roleString != null) ? roleString.trim() : null;
+
+        // --- 核心改动：将字符串角色转换为 Role 枚举 ---
+        Role roleEnum = null;
+        if (trimmedRoleString != null && !trimmedRoleString.isEmpty()) {
+            try {
+                // 将传入的字符串（例如 "ADMIN"）转换为 Role.ADMIN 枚举对象
+                roleEnum = Role.valueOf(trimmedRoleString.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // 如果传入了无效的角色字符串，返回错误
+                return ResponseEntity.badRequest().body("无效的角色参数: " + trimmedRoleString);
+            }
+        }
+        // ---------------------------------------------
+
+        // 逻辑判断：
+        // 1. 存在角色筛选
+        if (roleEnum != null) {
+            // 1a. 角色筛选 + 关键词搜索
+            if (trimmedQuery != null && !trimmedQuery.isEmpty()) {
+                // 传入 Role 枚举
+                users = userRepository.searchByKeywordAndRole(trimmedQuery, roleEnum);
+            } else {
+                // 1b. 仅角色筛选
+                // 传入 Role 枚举
+                users = userRepository.findByRole(roleEnum);
+            }
+            // 2. 不存在角色筛选，但存在关键词搜索
+        } else if (trimmedQuery != null && !trimmedQuery.isEmpty()) {
+            users = userRepository.searchByKeyword(trimmedQuery);
+            // 3. 既无筛选也无搜索
+        } else {
+            users = userRepository.findAll();
+        }
+
+        // ⚙️ 构造 JSON（避免 @JsonIgnore 影响）
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        for (User user : users) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", user.getId());
+            map.put("username", user.getUsername());
+            map.put("name", user.getName());
+            map.put("email", user.getEmail());
+            map.put("role", user.getRole());
+            map.put("createdAt", user.getCreatedAt());
+
+            if (user.getStudent() != null) {
+                Map<String, Object> studentMap = new HashMap<>();
+                studentMap.put("studentNo", user.getStudent().getStudentNo());
+                map.put("student", studentMap);
+            }
+
+            if (user.getTeacher() != null) {
+                Map<String, Object> teacherMap = new HashMap<>();
+                teacherMap.put("teacherNo", user.getTeacher().getTeacherNo());
+                teacherMap.put("title", user.getTeacher().getTitle());
+                teacherMap.put("department", user.getTeacher().getDepartment());
+                map.put("teacher", teacherMap);
+            }
+
+            resultList.add(map);
+        }
+
+        return ResponseEntity.ok(resultList);
+    }
+
     public List<User> listUsers() {
         return userRepo.findAll();
     }
 
     @GetMapping("/users/{id}")
-    public ResponseEntity<User> getUser(@PathVariable Long id) {
-        // 使用 findById 查找用户，如果找到则返回 200 OK，否则返回 404 Not Found
-        return userRepo.findById(id)
-                .map(ResponseEntity::ok)
+    public ResponseEntity<?> getUserById(@PathVariable Long id) {
+        return userRepository.findById(id)
+                .map(user -> {
+                    Map<String, Object> result = new HashMap<>();
+                    result.put("id", user.getId());
+                    result.put("username", user.getUsername());
+                    result.put("name", user.getName());
+                    result.put("email", user.getEmail());
+                    result.put("role", user.getRole());
+                    result.put("createdAt", user.getCreatedAt());
+
+                    // 手动添加学生信息（即使 @JsonIgnore 也能访问）
+                    if (user.getStudent() != null) {
+                        Map<String, Object> studentMap = new HashMap<>();
+                        studentMap.put("studentNo", user.getStudent().getStudentNo());
+                        result.put("student", studentMap);
+                    }
+
+                    // 你也可以同理加入教师信息（非必须）
+                    if (user.getTeacher() != null) {
+                        Map<String, Object> teacherMap = new HashMap<>();
+                        teacherMap.put("teacherNo", user.getTeacher().getTeacherNo());
+                        teacherMap.put("title", user.getTeacher().getTitle());
+                        teacherMap.put("department", user.getTeacher().getDepartment());
+                        result.put("teacher", teacherMap);
+                    }
+
+                    return ResponseEntity.ok(result);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
+
 
     @DeleteMapping("/users/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
@@ -74,14 +177,6 @@ public class AdminController {
             // 2. 密码更新（如果前端提供了密码）
             if (u.getPassword() != null && !u.getPassword().isEmpty()) {
                 existingUser.setPassword(passwordEncoder.encode(u.getPassword()));
-            }
-
-            // 3. 教师专属信息处理 (如果角色是教师)
-            if (existingUser.getRole() == Role.TEACHER && u.getTeacher() != null) {
-                // 这里假设您有一个 TeacherService 或类似的逻辑来处理关联的 Teacher 实体
-                // 如果 User 实体直接关联 Teacher 实体，您可能需要加载/更新该实体
-                // 简单示例（需要根据您的实际Teacher实体逻辑调整）：
-                // existingUser.setTeacher(u.getTeacher());
             }
 
             userRepo.save(existingUser);

@@ -1,12 +1,11 @@
 create DATABASE campus_system;
-
-
-
-
+-- 请假部分必须添加的
 ALTER TABLE leaves
     ADD COLUMN reviewed_at DATETIME,
     ADD COLUMN reviewer VARCHAR(255),
     ADD COLUMN comment TEXT;
+
+-- 不知道有没有用的
 -- 修改courses表，添加学分和描述字段
 ALTER TABLE courses ADD COLUMN credit DECIMAL(3,1) COMMENT '学分';
 ALTER TABLE courses ADD COLUMN description TEXT COMMENT '课程描述';
