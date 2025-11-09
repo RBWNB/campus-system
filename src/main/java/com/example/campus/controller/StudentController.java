@@ -1,7 +1,10 @@
 package com.example.campus.controller;
 
 import com.example.campus.entity.*;
-import com.example.campus.repository.*;
+import com.example.campus.repository.GradeRepository;
+import com.example.campus.repository.LeaveRepository;
+import com.example.campus.repository.StudentRepository;
+import com.example.campus.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -36,23 +39,19 @@ public class StudentController {
         User u = userRepo.findByUsername(ud.getUsername()).orElse(null);
         if (u == null) return ResponseEntity.notFound().build();
 
-        // 关键修改：更新用户信息（姓名和邮箱）
+        // 更新用户信息（姓名和邮箱）
         if (info.getUser() != null) {
-            // 更新用户姓名
             if (info.getUser().getName() != null && !info.getUser().getName().trim().isEmpty()) {
                 u.setName(info.getUser().getName());
             }
-            // 更新用户邮箱
             if (info.getUser().getEmail() != null && !info.getUser().getEmail().trim().isEmpty()) {
                 u.setEmail(info.getUser().getEmail());
             }
-            // 保存用户信息到数据库
             userRepo.save(u);
         }
 
-        Student s = studentRepo.findByUserId(u.getId()).orElse(new Student());
+        Student s = studentRepo.findByUserId(u.getId()).orElseThrow(() -> new RuntimeException("学生信息不存在"));
         s.setUser(u);
-        s.setStudentNo(info.getStudentNo());
         s.setMajor(info.getMajor());
         s.setGrade(info.getGrade());
         s.setPhone(info.getPhone());

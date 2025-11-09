@@ -94,7 +94,7 @@ public class InitDataRunner {
 
                 student = new Student();
                 student.setUser(studentUser);
-                student.setStudentNo("S2023001");
+                student.setStudentNo("20230001");
                 student.setMajor("计算机科学");
                 student.setGrade("2023");
                 student.setPhone("13900139000");

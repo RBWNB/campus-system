@@ -1,4 +1,3 @@
-<!-- src/main/resources/static/student/profile.html -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -27,6 +26,18 @@
             display: block;
             margin-bottom: 5px;
             font-weight: bold;
+        }
+        /* 只读输入框样式优化 */
+        .form-control[readonly] {
+            background-color: #f8f9fa;
+            cursor: not-allowed;
+            border-color: #e9ecef;
+        }
+        /* 禁用输入框样式增强（确保视觉上明确不可修改） */
+        .form-control[disabled] {
+            background-color: #f1f3f5;
+            opacity: 1;
+            border-color: #dee2e6;
         }
     </style>
 </head>
@@ -89,7 +100,7 @@
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1">
                         <h1 class="display-6 fw-bold mb-2">个人信息管理</h1>
-                        <p class="mb-0">查看和更新您的个人资料</p>
+                        <p class="mb-0">查看和更新您的个人资料（学号不可修改）</p>
                     </div>
                     <div class="flex-shrink-0">
                         <i class="fas fa-address-card fa-3x opacity-75"></i> <!-- 使用style.css中的opacity-75 -->
@@ -115,8 +126,8 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="studentNo" class="form-label">学号:</label>
-                                <!-- 学号通常不可编辑，设置为readonly -->
-                                <input type="text" id="studentNo" name="studentNo" class="form-control" >
+                                <!-- 关键修改：同时添加readonly和disabled，确保视觉不可修改+提交不传递 -->
+                                <input type="text" id="studentNo" name="studentNo" class="form-control" readonly disabled>
                             </div>
                             <div class="col-md-6">
                                 <label for="name" class="form-label">姓名:</label>
@@ -227,12 +238,14 @@
             });
     };
 
+    // 加载个人信息（包含学号）- 关键修复：请求方法改为GET（与Controller的@GetMapping匹配）
     function loadProfile() {
         fetch('/api/student/profile', {
-            method: 'GET',
+            method: 'GET', // 修复：原POST改为GET，与StudentController的@GetMapping("/profile")对应
             headers: {
                 'Authorization': 'Basic ' + btoa(getCredentials())
             }
+            // GET请求无需body，移除空请求体
         })
             .then(response => {
                 if (!response.ok) {
@@ -243,9 +256,10 @@
             })
             .then(data => {
                 if (data) {
-                    document.getElementById('studentNo').value = data.studentNo || '';
-                    document.getElementById('name').value = data.user ? data.user.name : '';
-                    document.getElementById('email').value = data.user ? data.user.email : '';
+                    // 显示自动分配的学号（不可修改）- 确保学号不为空时才赋值
+                    document.getElementById('studentNo').value = data.studentNo || '暂无学号';
+                    document.getElementById('name').value = data.user ? data.user.name || '' : '';
+                    document.getElementById('email').value = data.user ? data.user.email || '' : '';
                     document.getElementById('major').value = data.major || '';
                     document.getElementById('grade').value = data.grade || '';
                     document.getElementById('phone').value = data.phone || '';
@@ -258,7 +272,7 @@
             });
     }
 
-    // 提交表单更新个人信息
+    // 提交表单更新个人信息（不传递学号）
     document.getElementById('profileForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
@@ -271,6 +285,7 @@
                 name: document.getElementById('name').value,
                 email: document.getElementById('email').value,
             }
+            // 刻意不传递studentNo字段，确保学号不被修改
         };
 
         fetch('/api/student/info', {
@@ -284,12 +299,14 @@
             .then(response => {
                 if (!response.ok) {
                     if (response.status === 401) window.location.href = '/login.html';
-                    return response.text().then(text => { throw new Error(text || 'Unknown error') });
+                    return response.text().then(text => { throw new Error(text || '更新失败') });
                 }
                 return response.json();
             })
             .then(data => {
                 alert('个人信息更新成功');
+                // 刷新页面重新加载最新信息
+                loadProfile();
             })
             .catch(error => {
                 console.error('更新失败:', error);
