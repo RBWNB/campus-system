@@ -26,4 +26,18 @@ public interface CourseRepository extends JpaRepository<Course, Long> {
     boolean existsByIdAndTeacherUsername(@Param("courseId") Long courseId,
                                          @Param("teacherUsername") String teacherUsername);
     List<Course> findByCodeContainingOrNameContaining(String codeQuery, String nameQuery);
+
+    // 新增方法：获取所有课程代码（用于选择）
+    @Query("SELECT DISTINCT c.code FROM Course c")
+    List<String> findAllCourseCodes();
+
+    // 新增方法：根据课程代码获取课程信息
+    @Query("SELECT c FROM Course c WHERE c.code = :code")
+    List<Course> findByCourseCode(@Param("code") String code);
+
+    // 新增方法：检查课程代码是否存在
+    boolean existsByCode(String code);
+
+    // 新增方法：检查课程代码是否存在（排除当前课程）
+    boolean existsByCodeAndIdNot(String code, Long id);
 }
