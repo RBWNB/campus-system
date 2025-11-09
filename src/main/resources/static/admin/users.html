@@ -281,9 +281,9 @@
             isValid = false;
         }
 
-        // 如果是教师角色，验证教师编号
+        // 如果是教师角色，并且是添加模式，验证教师编号
         const role = document.getElementById('role').value;
-        if (role === 'TEACHER') {
+        if (role === 'TEACHER' && !userId) { // 检查是否是添加模式
             const teacherNo = document.getElementById('teacherNo');
             if (!teacherNo.value.trim()) {
                 teacherNo.classList.add('is-invalid');
@@ -421,13 +421,8 @@
                 document.getElementById('password').value = ''; // Don't prefill password
                 document.getElementById('role').value = user.role || '';
 
-                // 若角色是教师，显示教师字段
-                if (user.role === 'TEACHER') {
-                    document.getElementById('teacherFields').style.display = 'block';
-                    // 可以在这里添加教师信息的回显逻辑
-                } else {
-                    document.getElementById('teacherFields').style.display = 'none';
-                }
+                // *** 修改点 1: 在编辑模式下，强制隐藏教师专属信息 ***
+                document.getElementById('teacherFields').style.display = 'none';
 
                 clearValidation(); // 清除验证状态
                 new bootstrap.Modal(document.getElementById('userModal')).show();
@@ -503,8 +498,8 @@
             userData.password = password;
         }
 
-        // 角色为教师时，添加教师专属信息
-        if (userData.role === 'TEACHER') {
+        // 角色为教师时，并且是添加模式，添加教师专属信息
+        if (userData.role === 'TEACHER' && !userId) {
             const teacherNo = document.getElementById('teacherNo').value.trim();
             // 构建教师信息对象
             userData.teacher = {
@@ -534,7 +529,8 @@
                         throw new Error(text || '操作失败');
                     });
                 }
-                return response.text();
+                // PUT 请求成功可能返回空 body，所以这里用 text()
+                return response.text().then(text => text || (userId ? '用户信息更新成功' : '用户添加成功'));
             })
             .then(message => {
                 alert(message || '用户信息保存成功');
@@ -547,13 +543,18 @@
             });
     }
 
-    // 角色选择change事件：动态显示/隐藏教师字段
+    // *** 修改点 2: 角色选择change事件：仅在 "添加用户" 模式下动态显示/隐藏教师字段 ***
     document.getElementById('role').addEventListener('change', function() {
+        const userId = document.getElementById('userId').value; // 获取当前是否是编辑模式
         const teacherFields = document.getElementById('teacherFields');
-        teacherFields.style.display = this.value === 'TEACHER' ? 'block' : 'none';
+
+        // 只有在非编辑模式 (即添加模式，userId为空) 且角色是 TEACHER 时，才显示
+        const shouldShowTeacherFields = !userId && (this.value === 'TEACHER');
+
+        teacherFields.style.display = shouldShowTeacherFields ? 'block' : 'none';
 
         // 清除教师字段的验证状态
-        if (this.value !== 'TEACHER') {
+        if (this.value !== 'TEACHER' || userId) {
             document.getElementById('teacherNo').classList.remove('is-invalid');
         }
     });
@@ -574,9 +575,10 @@
             validateEmail(this);
         });
 
-        // 教师编号实时验证
+        // 教师编号实时验证 (仅在添加模式下)
         document.getElementById('teacherNo').addEventListener('blur', function() {
-            if (!this.value.trim() && document.getElementById('role').value === 'TEACHER') {
+            const userId = document.getElementById('userId').value;
+            if (!userId && document.getElementById('role').value === 'TEACHER' && !this.value.trim()) {
                 this.classList.add('is-invalid');
             } else {
                 this.classList.remove('is-invalid');
