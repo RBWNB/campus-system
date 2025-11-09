@@ -54,23 +54,7 @@
             font-size: 0.9rem;
         }
 
-        .form-control:focus {
-            border-color: #ffc107;
-            box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
-        }
 
-        .btn-warning {
-            background-color: #ffc107;
-            border-color: #ffc107;
-            color: #212529;
-            font-weight: 500;
-        }
-
-        .btn-warning:hover {
-            background-color: #e0a800;
-            border-color: #e0a800;
-            color: #212529;
-        }
 
         .status-badge {
             padding: 0.35em 0.65em;
@@ -135,10 +119,10 @@
 </head>
 <body>
 <!-- 统一的导航栏 -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-warning shadow-sm">
+<nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
     <div class="container">
         <a class="navbar-brand fw-bold" href="#">
-            <i class="fas fa-exclamation-triangle me-2"></i>请假管理
+            <i class="fas fa-calendar-minus me-2"></i>请假申请
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
@@ -161,13 +145,17 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="/student/schedule.html">
+                        <i class="fas fa-calendar-alt me-1"></i>我的课表
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="/student/courses.html">
                         <i class="fas fa-book me-1"></i>课程查询
                     </a>
                 </li>
                 <li class="nav-item">
-                    <!-- 激活当前页面链接 -->
-                    <a class="nav-link active" href="/student/leaves.html">
+                    <a class="nav-link active" aria-current="page" href="/student/leaves.html">
                         <i class="fas fa-calendar-minus me-1"></i>请假申请
                     </a>
                 </li>
@@ -188,11 +176,11 @@
     <!-- 页面标题区域，模仿首页的欢迎横幅 -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="p-4 bg-gradient-warning text-white rounded-3 shadow-sm">
+            <div class="p-4 bg-gradient-success text-white rounded-3 shadow-sm">
                 <div class="d-flex align-items-center">
                     <div class="flex-grow-1">
-                        <h1 class="page-title mb-2">请假申请</h1>
-                        <p class="page-subtitle mb-0">填写请假信息，并查看申请记录</p>
+                        <h1 class="display-6 fw-bold mb-2">请假申请</h1>
+                        <p class="mb-0">填写请假信息，并查看申请记录</p>
                     </div>
                     <div class="flex-shrink-0">
                         <i class="fas fa-edit fa-3x opacity-75"></i>

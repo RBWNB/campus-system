@@ -22,7 +22,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
     <div class="container">
         <a class="navbar-brand fw-bold" href="#">
-            <i class="fas fa-chart-line me-2"></i>成绩管理
+            <i class="fas fa-chart-line me-2"></i>成绩查询
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
@@ -30,7 +30,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="/student/index.html"> <!-- Corrected path -->
+                    <a class="nav-link" href="/student/index.html">
                         <i class="fas fa-home me-1"></i>首页
                     </a>
                 </li>
@@ -40,9 +40,13 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <!-- 激活当前页面链接 -->
-                    <a class="nav-link active" href="/student/grades.html">
+                    <a class="nav-link active" aria-current="page" href="/student/grades.html">
                         <i class="fas fa-chart-bar me-1"></i>成绩查询
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/student/schedule.html">
+                        <i class="fas fa-calendar-alt me-1"></i>我的课表
                     </a>
                 </li>
                 <li class="nav-item">

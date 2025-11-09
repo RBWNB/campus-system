@@ -5,17 +5,23 @@ import com.example.campus.entity.Schedule;
 import com.example.campus.entity.Course;
 import com.example.campus.entity.Classroom;
 import com.example.campus.entity.User;
+// 新增导入
+import com.example.campus.entity.CourseSelection;
 import com.example.campus.repository.ScheduleRepository;
 import com.example.campus.repository.CourseRepository;
 import com.example.campus.repository.ClassroomRepository;
 import com.example.campus.repository.UserRepository;
+// 新增导入
+import com.example.campus.repository.CourseSelectionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors; // 新增导入
 
 @Service
 public class ScheduleService {
@@ -32,6 +38,12 @@ public class ScheduleService {
     @Autowired
     private UserRepository userRepository;
 
+    // **********************************************
+    // ************ 新增依赖注入 ********************
+    // **********************************************
+    @Autowired
+    private CourseSelectionRepository courseSelectionRepository;
+
     @Transactional
     public Schedule saveSchedule(ScheduleDTO scheduleDTO) {
         // 验证课程是否存在
@@ -42,16 +54,24 @@ public class ScheduleService {
         Classroom classroom = classroomRepository.findById(scheduleDTO.getClassroomId())
                 .orElseThrow(() -> new RuntimeException("教室不存在"));
 
-        // 转换时间格式
-        LocalTime startTime = LocalTime.parse(scheduleDTO.getStartTime());
-        LocalTime endTime = LocalTime.parse(scheduleDTO.getEndTime());
+        LocalTime startTime;
+        LocalTime endTime;
+        try {
+            startTime = LocalTime.parse(scheduleDTO.getStartTime());
+            endTime = LocalTime.parse(scheduleDTO.getEndTime());
+        } catch (DateTimeParseException e) {
+            throw new RuntimeException("时间格式不正确，请使用 HH:mm 格式");
+        }
+
+        if (startTime.isAfter(endTime) || startTime.equals(endTime)) {
+            throw new RuntimeException("结束时间必须晚于开始时间");
+        }
 
         // 检查时间冲突
         if (hasTimeConflict(scheduleDTO.getClassroomId(), scheduleDTO.getWeekday(), startTime, endTime)) {
             throw new RuntimeException("该教室在该时间段已被占用");
         }
 
-        // 创建排课记录
         Schedule schedule = new Schedule();
         schedule.setCourse(course);
         schedule.setClassroom(classroom);
@@ -61,7 +81,7 @@ public class ScheduleService {
         schedule.setEndTime(endTime);
         schedule.setTerm(scheduleDTO.getTerm());
 
-        // 根据教师用户名查找教师用户
+        // 设置教师用户关联
         if (scheduleDTO.getTeacher() != null && !scheduleDTO.getTeacher().trim().isEmpty()) {
             Optional<User> teacherUser = userRepository.findByUsername(scheduleDTO.getTeacher());
             teacherUser.ifPresent(schedule::setTeacherUser);
@@ -70,67 +90,40 @@ public class ScheduleService {
         return scheduleRepository.save(schedule);
     }
 
-    // 检查时间冲突
-    private boolean hasTimeConflict(Long classroomId, Integer weekday, LocalTime startTime, LocalTime endTime) {
-        List<Schedule> existingSchedules = scheduleRepository.findByClassroomIdAndWeekday(classroomId, weekday);
-
-        for (Schedule existing : existingSchedules) {
-            if (isTimeOverlap(existing.getStartTime(), existing.getEndTime(), startTime, endTime)) {
-                return true;
-            }
-        }
-        return false;
+    public List<Schedule> getAllSchedules() {
+        return scheduleRepository.findAll();
     }
 
-    // 检查时间是否重叠
-    private boolean isTimeOverlap(LocalTime start1, LocalTime end1, LocalTime start2, LocalTime end2) {
-        return start1.isBefore(end2) && end1.isAfter(start2);
+    public List<Schedule> getSchedulesByTeacher(String username) {
+        return scheduleRepository.findByTeacherUser_Username(username);
     }
 
-    // 获取教师排课
-    public List<Schedule> getSchedulesByTeacher(String teacherUsername) {
-        return scheduleRepository.findByTeacherUser_Username(teacherUsername);
-    }
-
-    // 获取课程排课
-    public List<Schedule> getSchedulesByCourse(Long courseId) {
-        return scheduleRepository.findByCourseId(courseId);
-    }
-
-    // 获取教室在某天的排课
-    public List<Schedule> getSchedulesByClassroomAndWeekday(Long classroomId, Integer weekday) {
-        return scheduleRepository.findByClassroomIdAndWeekday(classroomId, weekday);
-    }
-
-    // 删除排课
     @Transactional
-    public void deleteSchedule(Long scheduleId) {
-        if (!scheduleRepository.existsById(scheduleId)) {
-            throw new RuntimeException("排课记录不存在");
-        }
-        scheduleRepository.deleteById(scheduleId);
-    }
-
-    // 更新排课
-    @Transactional
-    public Schedule updateSchedule(Long scheduleId, ScheduleDTO scheduleDTO) {
-        Schedule existingSchedule = scheduleRepository.findById(scheduleId)
+    public Schedule updateSchedule(Long id, ScheduleDTO scheduleDTO) {
+        Schedule existingSchedule = scheduleRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("排课记录不存在"));
 
-        // 验证课程
         Course course = courseRepository.findById(scheduleDTO.getCourseId())
                 .orElseThrow(() -> new RuntimeException("课程不存在"));
 
-        // 验证教室
         Classroom classroom = classroomRepository.findById(scheduleDTO.getClassroomId())
                 .orElseThrow(() -> new RuntimeException("教室不存在"));
 
-        // 转换时间
-        LocalTime startTime = LocalTime.parse(scheduleDTO.getStartTime());
-        LocalTime endTime = LocalTime.parse(scheduleDTO.getEndTime());
+        LocalTime startTime;
+        LocalTime endTime;
+        try {
+            startTime = LocalTime.parse(scheduleDTO.getStartTime());
+            endTime = LocalTime.parse(scheduleDTO.getEndTime());
+        } catch (DateTimeParseException e) {
+            throw new RuntimeException("时间格式不正确，请使用 HH:mm 格式");
+        }
 
-        // 检查时间冲突（排除自身）
-        if (hasTimeConflictForUpdate(scheduleId, scheduleDTO.getClassroomId(), scheduleDTO.getWeekday(), startTime, endTime)) {
+        if (startTime.isAfter(endTime) || startTime.equals(endTime)) {
+            throw new RuntimeException("结束时间必须晚于开始时间");
+        }
+
+        // 检查更新时的时间冲突（排除自身）
+        if (hasTimeConflictForUpdate(existingSchedule.getId(), scheduleDTO.getClassroomId(), scheduleDTO.getWeekday(), startTime, endTime)) {
             throw new RuntimeException("该教室在该时间段已被占用");
         }
 
@@ -152,6 +145,58 @@ public class ScheduleService {
         return scheduleRepository.save(existingSchedule);
     }
 
+    public void deleteSchedule(Long id) {
+        scheduleRepository.deleteById(id);
+    }
+
+    // **********************************************
+    // ************ 新增学生课表查询方法 ************
+    // **********************************************
+    /**
+     * 获取指定学生用户名对应的所有排课记录，并可根据学期过滤。
+     * 逻辑流程: 通过用户名直接获取 CourseSelection -> 提取 Course ID -> 查询 Schedule
+     * @param studentUsername 学生用户名
+     * @param term 学期标识符 (可选)
+     * @return 课程表列表
+     */
+    public List<Schedule> getSchedulesForStudent(String studentUsername, String term) {
+        // 1. 根据用户名直接查找学生已选的所有课程记录
+        List<CourseSelection> selections = courseSelectionRepository.findByStudent_User_Username(studentUsername);
+
+        if (selections.isEmpty()) {
+            // 该学生没有选课，直接返回空列表
+            return List.of();
+        }
+
+        // 2. 提取所有已选课程的 Course ID
+        // 假设 CourseSelection 实体中关联 Course 的字段名为 course
+        List<Long> courseIds = selections.stream()
+                .map(selection -> selection.getCourse().getId())
+                .collect(Collectors.toList());
+
+        // 3. 根据 Course ID 列表和学期查询 Schedule
+        if (term != null && !term.trim().isEmpty()) {
+            // 需要 ScheduleRepository.findByCourse_IdInAndTerm(List<Long> courseIds, String term)
+            return scheduleRepository.findByCourse_IdInAndTerm(courseIds, term);
+        } else {
+            // 需要 ScheduleRepository.findByCourse_IdIn(List<Long> courseIds)
+            return scheduleRepository.findByCourse_IdIn(courseIds);
+        }
+    }
+
+
+    // 检查新增排课时的时间冲突
+    private boolean hasTimeConflict(Long classroomId, Integer weekday, LocalTime startTime, LocalTime endTime) {
+        List<Schedule> existingSchedules = scheduleRepository.findByClassroomIdAndWeekday(classroomId, weekday);
+
+        for (Schedule existing : existingSchedules) {
+            if (isTimeOverlap(existing.getStartTime(), existing.getEndTime(), startTime, endTime)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // 检查更新时的时间冲突（排除自身）
     private boolean hasTimeConflictForUpdate(Long scheduleId, Long classroomId, Integer weekday, LocalTime startTime, LocalTime endTime) {
         List<Schedule> existingSchedules = scheduleRepository.findByClassroomIdAndWeekday(classroomId, weekday);
@@ -163,5 +208,12 @@ public class ScheduleService {
             }
         }
         return false;
+    }
+
+    // 判断时间段是否重叠（包含边界情况）
+    private boolean isTimeOverlap(LocalTime existingStart, LocalTime existingEnd, LocalTime newStart, LocalTime newEnd) {
+        // [newStart, newEnd) 与 [existingStart, existingEnd) 重叠
+        // (newStart < existingEnd) AND (newEnd > existingStart)
+        return newStart.isBefore(existingEnd) && newEnd.isAfter(existingStart);
     }
 }

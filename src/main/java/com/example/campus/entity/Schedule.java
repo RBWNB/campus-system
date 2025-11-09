@@ -6,6 +6,9 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import java.time.LocalTime;
 
+// 导入 Jackson 注解
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @Entity
 @Table(name = "schedule")
 @Data
@@ -14,10 +17,14 @@ public class Schedule {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 解决 Jackson 序列化 Lazy 关系时的代理对象错误
     @ManyToOne
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "schedules"})
     private Course course;
 
+    // 解决 Jackson 序列化 Lazy 关系时的代理对象错误
     @ManyToOne
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "schedules"})
     private Classroom classroom;
 
     private String teacher;
@@ -26,6 +33,8 @@ public class Schedule {
     private LocalTime endTime;
     private String term;
 
+    // 解决 Jackson 序列化 Lazy 关系时的代理对象错误
     @ManyToOne
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "teachers", "students"})
     private User teacherUser;
 }
