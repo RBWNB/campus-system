@@ -39,6 +39,15 @@
             opacity: 1;
             border-color: #dee2e6;
         }
+        /* 下拉列表样式适配，保持与输入框一致 */
+        .form-select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -141,7 +150,14 @@
                             </div>
                             <div class="col-md-6">
                                 <label for="grade" class="form-label">年级:</label>
-                                <input type="text" id="grade" name="grade" class="form-control">
+                                <!-- 核心修改：将输入框改为下拉列表 -->
+                                <select id="grade" name="grade" class="form-select" required>
+                                    <option value="">请选择年级</option>
+                                    <option value="大一">大一</option>
+                                    <option value="大二">大二</option>
+                                    <option value="大三">大三</option>
+                                    <option value="大四">大四</option>
+                                </select>
                             </div>
                         </div>
                         <div class="row g-3 mt-3">
@@ -289,7 +305,11 @@
                     document.getElementById('name').value = data.user ? data.user.name || '' : '';
                     document.getElementById('email').value = data.user ? data.user.email || '' : '';
                     document.getElementById('major').value = data.major || '';
-                    document.getElementById('grade').value = data.grade || '';
+                    // 核心修改：下拉列表回显选中值
+                    const gradeSelect = document.getElementById('grade');
+                    if (data.grade) {
+                        gradeSelect.value = data.grade;
+                    }
                     document.getElementById('phone').value = data.phone || '';
                     document.getElementById('address').value = data.address || '';
                 }
@@ -306,7 +326,7 @@
 
         const profileData = {
             major: document.getElementById('major').value,
-            grade: document.getElementById('grade').value,
+            grade: document.getElementById('grade').value, // 保持原有字段名，确保后端正常接收
             phone: document.getElementById('phone').value,
             address: document.getElementById('address').value,
             user: {
