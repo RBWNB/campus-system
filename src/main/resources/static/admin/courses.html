@@ -6,28 +6,30 @@
     <title>课程管理 - 学工管理系统</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="/css/style.css" rel="stylesheet">
     <style>
         body {
             background-color: #f8f9fa;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        .bg-gradient-primary {
-            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
-        }
+
         .card {
             border: none;
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
             border-radius: 10px;
         }
         .table th {
+            /* 保持 users.html 中表格头部的默认/轻微背景 */
             border-top: none;
             font-weight: 600;
             background-color: #f8f9fa;
         }
+        /* 保持 users.html 中添加按钮的样式 */
         .btn-success {
             background-color: #198754;
             border-color: #198754;
         }
+        /* 保持 users.html 中删除按钮的样式 */
         .btn-outline-danger {
             color: #dc3545;
             border-color: #dc3545;
@@ -36,18 +38,12 @@
             background-color: #dc3545;
             color: white;
         }
-        .search-box {
-            position: relative;
-        }
+        /* 搜索框样式调整为与 users.html 相似的 input-group 风格 */
         .search-box .form-control {
-            padding-left: 2.5rem;
+            padding-left: 0.75rem; /* 移除左侧图标的额外内边距 */
         }
         .search-box i {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6c757d;
+            display: none; /* 移除原来的搜索图标，使用 input-group 风格的搜索按钮 */
         }
         .course-code {
             font-family: 'Courier New', monospace;
@@ -60,10 +56,13 @@
             right: 20px;
             z-index: 1055;
         }
+        /* 保证和 users.html 的 badge 颜色一致 */
+        .badge.bg-success {
+            background-color: #198754 !important;
+        }
     </style>
 </head>
 <body>
-<!-- 导航栏 -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
     <div class="container">
         <a class="navbar-brand fw-bold" href="#">
@@ -119,9 +118,7 @@
     </div>
 </nav>
 
-<!-- 页面内容 -->
-<div class="container my-4">
-    <!-- 欢迎横幅 -->
+<<div class="container my-4">
     <div class="row mb-4">
         <div class="col-12">
             <div class="p-4 bg-gradient-primary text-white rounded-3 shadow-sm">
@@ -149,9 +146,11 @@
         </div>
         <div class="card-body">
             <div class="mb-3">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
+                <div class="input-group">
                     <input type="text" id="searchInput" class="form-control" placeholder="输入课程代码或名称进行搜索">
+                    <button class="btn btn-outline-primary" onclick="searchCourses()">
+                        <i class="fas fa-search"></i> 搜索
+                    </button>
                 </div>
             </div>
 
@@ -167,7 +166,6 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <!-- 课程数据将通过JavaScript动态填充 -->
                     </tbody>
                 </table>
             </div>
@@ -175,7 +173,6 @@
     </div>
 </div>
 
-<!-- 添加课程模态框 -->
 <div class="modal fade" id="courseModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -242,7 +239,6 @@
     </div>
 </div>
 
-<!-- 操作提示 -->
 <div class="toast align-items-center text-white bg-success border-0" id="successToast" role="alert">
     <div class="d-flex">
         <div class="toast-body">
@@ -312,6 +308,9 @@
                         <td>${course.credit || ''}</td>
                         <td>${course.description || ''}</td>
                         <td>
+                            <button class="btn btn-sm btn-outline-primary me-1" onclick="editCourse(${course.id})">
+                                <i class="fas fa-edit"></i> 编辑
+                            </button>
                             <button class="btn btn-sm btn-outline-danger" onclick="deleteCourse(${course.id})">
                                 <i class="fas fa-trash"></i> 删除
                             </button>
@@ -345,6 +344,37 @@
         document.getElementById('courseId').value = '';
         new bootstrap.Modal(document.getElementById('courseModal')).show();
     }
+
+    // 编辑课程函数 (新增，以匹配 users.html 的编辑逻辑)
+    function editCourse(courseId) {
+        fetch(`/api/admin/course-management/${courseId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(getCredentials())
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) window.location.href = '/login.html';
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(course => {
+                document.getElementById('modalTitle').textContent = '编辑课程';
+                document.getElementById('courseId').value = course.id;
+                document.getElementById('courseCode').value = course.code || '';
+                document.getElementById('courseName').value = course.name || '';
+                document.getElementById('credit').value = course.credit || '';
+                document.getElementById('courseType').value = course.type || '必修';
+                document.getElementById('courseHours').value = course.hours || 32;
+                document.getElementById('description').value = course.description || '';
+
+                new bootstrap.Modal(document.getElementById('courseModal')).show();
+            })
+            .catch(error => console.error('获取课程信息失败:', error));
+    }
+
 
     // 删除课程
     function deleteCourse(courseId) {
