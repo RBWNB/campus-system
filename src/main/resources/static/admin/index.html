@@ -2,8 +2,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>学工管理系统 - 管理员面板</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -200,69 +200,119 @@
 
 <script>
 
-  // 获取存储的凭据
-  function getCredentials() {
-    return localStorage.getItem('credentials') || '';
-  }
-
-  // 退出登录
-  function logout() {
-    localStorage.removeItem('credentials');
-    window.location.href = '/login.html';
-  }
-
-  // 页面加载完成后检查是否已登录
-  // 在每个页面的 window.onload 中添加权限检查
-  window.onload = function() {
-    const credentials = localStorage.getItem('credentials');
-    if (!credentials) {
-      window.location.href = '/login.html';
-      return;
+    // 获取存储的凭据
+    function getCredentials() {
+        return localStorage.getItem('credentials');
     }
 
-    // 获取当前用户信息
-    fetch('/api/auth/me', {
-      method: 'GET',
-      headers: {
-        'Authorization': 'Basic ' + btoa(credentials)
-      }
-    })
-            .then(response => response.json())
-            .then(data => {
-              const role = data.role[0].authority; // 获取用户角色
+    // 退出函数
+    function logout() {
+        // 1. 移除本地存储的凭据
+        localStorage.removeItem('credentials');
 
-              // 检查当前页面是否匹配用户权限
-              const currentPath = window.location.pathname;
-
-              // 学生只能访问学生相关页面
-              if (role === 'STUDENT') {
-                const allowedPaths = ['/student/', '/announcements.html', '/index.html'];
-                if (!allowedPaths.some(path => currentPath.startsWith(path))) {
-                  window.location.href = '/student/index.html';
+        // 2. 发送 POST 请求到 Spring Security 的 logout URL
+        //    Spring Security 会处理此 URL 的退出逻辑
+        fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: {
+                // 对于 Basic Auth，我们不需要发送 Authorization 头，因为我们已经删除了凭据。
+                // Spring Security 的 LogoutFilter 会处理这个 POST 请求。
+                'Content-Type': 'application/json' // POST 请求通常需要 Content-Type
+            }
+        })
+            .then(response => {
+                // 无论后端响应是 200 OK 还是 401 Unauthorized，都认为是成功退出了（或因认证丢失而跳转）
+                // 最终目的都是跳转到登录页
+                if (response.ok || response.status === 401) {
+                    console.log("Logout successful or session expired. Redirecting to login page.");
+                    window.location.href = '/login.html';
+                } else {
+                    // 发生其他非预期的错误
+                    console.error('Logout failed with status:', response.status);
+                    window.location.href = '/login.html'; // 无论如何都跳转到登录页
                 }
-              }
-
-              // 教师只能访问教师相关页面
-              if (role === 'TEACHER') {
-                const allowedPaths = ['/teacher/', '/announcements.html', '/index.html'];
-                if (!allowedPaths.some(path => currentPath.startsWith(path))) {
-                  window.location.href = '/teacher/index.html';
-                }
-              }
-
-              // 管理员可以访问所有页面
-              if (role === 'ADMIN') {
-                // 不做限制
-              }
             })
             .catch(error => {
-              console.error('获取用户信息失败:', error);
-              window.location.href = '/login.html';
+                // 请求本身失败（网络错误等）
+                console.error('Error during logout fetch:', error);
+                window.location.href = '/login.html'; // 跳转到登录页
             });
-  };
+    }
+
+    // 页面加载完成时的权限检查
+    window.onload = function() {
+        const credentials = localStorage.getItem('credentials');
+
+        // 如果没有存储的凭据，直接跳转到登录页
+        if (!credentials) {
+            window.location.href = '/login.html';
+            return;
+        }
+
+        // 检查当前用户信息，验证会话是否仍然有效
+        fetch('/api/auth/me', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(credentials)
+            }
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.json(); // 解析 JSON 数据
+                } else {
+                    // 如果用户信息请求失败 (如 401 Unauthorized)，说明会话已失效
+                    console.warn('Authentication failed or session expired. Redirecting to login page.');
+                    localStorage.removeItem('credentials'); // 清除本地失效凭据
+                    window.location.href = '/login.html'; // 跳转到登录页
+                    return Promise.reject('User not authenticated'); // 停止后续 Promise 链
+                }
+            })
+            .then(data => {
+                // 成功获取用户信息，进行页面权限控制
+                const role = data.role[0].authority; // 获取用户角色
+                const currentPath = window.location.pathname;
+
+                // 管理员逻辑
+                if (role === 'ADMIN') {
+                    // 如果是管理员，但访问的是登录页，则重定向到管理员首页
+                    if (currentPath === '/login.html') {
+                        window.location.href = '/admin/index.html';
+                    }
+                    // 其他页面根据需要限制，但此处假设管理员有权访问所有页面
+                }
+                // 教师逻辑
+                else if (role === 'TEACHER') {
+                    const allowedPaths = ['/teacher/', '/announcements.html', '/login.html', '/index.html']; // 允许访问的路径
+                    // 如果当前路径不在允许列表中，则重定向
+                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
+                        // 重定向到教师首页或登录页
+                        window.location.href = '/teacher/index.html'; // 或 '/login.html'
+                    }
+                }
+                // 学生逻辑
+                else if (role === 'STUDENT') {
+                    const allowedPaths = ['/student/', '/announcements.html', '/login.html', '/index.html']; // 允许访问的路径
+                    // 如果当前路径不在允许列表中，则重定向
+                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
+                        // 重定向到学生首页或登录页
+                        window.location.href = '/student/index.html'; // 或 '/login.html'
+                    }
+                }
+                // 如果角色不匹配以上任何一种，或者 role[0] 不存在，则视为未认证
+                else {
+                    console.warn('Unknown role or no role found. Redirecting to login page.');
+                    window.location.href = '/login.html';
+                }
+            })
+            .catch(error => {
+                // 之前已经处理了认证失败的情况，这里捕获其他可能的错误
+                console.error('Error during initial page load:', error);
+                // 如果出现其他错误，也跳转到登录页
+                window.location.href = '/login.html';
+            });
+    };
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
