@@ -1,3 +1,4 @@
+// AdminController.java
 package com.example.campus.controller;
 
 import com.example.campus.entity.*;
@@ -33,10 +34,10 @@ public class AdminController {
         return ResponseEntity.ok(u);
     }
 
-
-
     @GetMapping("/users")
-    public List<User> listUsers() { return userRepo.findAll(); }
+    public List<User> listUsers() {
+        return userRepo.findAll();
+    }
 
     @GetMapping("/users/{id}")
     public ResponseEntity<User> getUser(@PathVariable Long id) {
@@ -100,5 +101,38 @@ public class AdminController {
     @PostMapping("/classrooms")
     public Classroom createClassroom(@RequestBody Classroom r) {
         return classroomRepo.save(r);
+    }
+
+    @GetMapping("/classrooms")
+    public ResponseEntity<List<Classroom>> getClassrooms(
+            @RequestParam(required = false) String q) {
+        List<Classroom> classrooms;
+
+        if (q != null && !q.isEmpty()) {
+            classrooms = classroomRepo.findByNameContainingIgnoreCaseOrLocationContainingIgnoreCase(q, q);
+        } else {
+            classrooms = classroomRepo.findAll();
+        }
+
+        return ResponseEntity.ok(classrooms);
+    }
+
+    @PutMapping("/classrooms/{id}")
+    public ResponseEntity<Classroom> updateClassroom(@PathVariable Long id, @RequestBody Classroom classroom) {
+        if (!classroomRepo.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        classroom.setId(id);
+        Classroom updated = classroomRepo.save(classroom);
+        return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/classrooms/{id}")
+    public ResponseEntity<Void> deleteClassroom(@PathVariable Long id) {
+        if (!classroomRepo.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        classroomRepo.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }
