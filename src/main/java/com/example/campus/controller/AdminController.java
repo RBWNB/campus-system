@@ -1,9 +1,12 @@
 // AdminController.java
 package com.example.campus.controller;
 
-import com.example.campus.entity.*;
+import com.example.campus.entity.Classroom;
+import com.example.campus.entity.Course;
+import com.example.campus.entity.User;
 import com.example.campus.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -93,11 +96,19 @@ public class AdminController {
     }
 
     @DeleteMapping("/classrooms/{id}")
-    public ResponseEntity<Void> deleteClassroom(@PathVariable Long id) {
+    public ResponseEntity<String> deleteClassroom(@PathVariable Long id) {
         if (!classroomRepo.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
-        classroomRepo.deleteById(id);
-        return ResponseEntity.noContent().build();
+        try {
+            classroomRepo.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } catch (DataIntegrityViolationException e) {
+            // 捕获外键约束异常（被排课引用时触发）
+            return ResponseEntity.badRequest().body("删除失败：该教室已被排课记录引用，请先删除相关排课");
+        } catch (Exception e) {
+            // 处理其他可能的异常
+            return ResponseEntity.badRequest().body("删除失败：发生未知错误");
+        }
     }
 }

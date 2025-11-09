@@ -416,6 +416,34 @@
                 window.location.href = '/login.html';
             });
     };
+
+    // 删除教室
+    function deleteClassroom(classroomId) {
+        if (confirm('确定要删除这个教室吗？\n提示：如果该教室已被排课引用，需要先删除相关排课记录。')) {
+            fetch(`/api/admin/classrooms/${classroomId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': 'Basic ' + btoa(getCredentials())
+                }
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert('教室删除成功');
+                        loadClassrooms(); // 重新加载教室列表
+                    } else {
+                        // 解析后端返回的错误信息
+                        response.text().then(errorMessage => {
+                            alert('删除失败: ' + (errorMessage || '服务器处理错误'));
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('删除教室失败:', error);
+                    alert('删除失败: 网络连接异常，请稍后重试');
+                });
+        }
+    }
+
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
