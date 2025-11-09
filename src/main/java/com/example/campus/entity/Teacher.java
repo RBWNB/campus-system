@@ -26,4 +26,7 @@ public class Teacher {
     private String department;
     private String phone;
     private String office;
+
+    // 新增 name 字段（存储教师姓名，用于排课显示）
+    private String name;
 }
