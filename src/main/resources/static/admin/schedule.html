@@ -8,25 +8,21 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="/css/style.css" rel="stylesheet">
     <style>
-        /* 错误提示样式 */
         .error-text {
             color: #dc3545;
             font-size: 0.875rem;
             margin-top: 0.25rem;
             display: none;
         }
-        /* 禁用状态提示 */
         .select-hint {
             color: #6c757d;
         }
-        /* 表单字段错误样式 */
         .form-control.is-invalid, .form-select.is-invalid {
             border-color: #dc3545;
         }
         .invalid-feedback {
             display: none;
         }
-        /* 错误详情模态框样式 */
         .error-detail-modal .modal-body {
             color: #dc3545;
             font-size: 1rem;
@@ -35,7 +31,6 @@
     </style>
 </head>
 <body>
-<!-- 导航栏 -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
     <div class="container">
         <a class="navbar-brand fw-bold" href="#">
@@ -87,9 +82,7 @@
     </div>
 </nav>
 
-<!-- 页面内容 -->
 <div class="container my-4">
-    <!-- 欢迎横幅 -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="p-4 bg-gradient-primary text-white rounded-3 shadow-sm">
@@ -111,7 +104,6 @@
             <h5 class="card-title mb-0">
                 <i class="fas fa-calendar-alt text-primary me-2"></i>课程安排
             </h5>
-            <!-- 修复：直接使用 Bootstrap 数据属性触发模态框，避免 JS 初始化问题 -->
             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#scheduleModal" onclick="prepareAddModal()">
                 <i class="fas fa-plus me-1"></i>添加排课
             </button>
@@ -119,7 +111,7 @@
         <div class="card-body">
             <div class="mb-3">
                 <div class="input-group">
-                    <input type="text" id="searchInput" class="form-control" placeholder="输入课程名称或教室名称进行搜索">
+                    <input type="text" id="searchInput" class="form-control" placeholder="输入课程名称、教室名称或教师姓名进行搜索">
                     <button class="btn btn-outline-primary" onclick="searchSchedules()">
                         <i class="fas fa-search"></i> 搜索
                     </button>
@@ -141,7 +133,6 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <!-- 排课数据将通过JavaScript动态填充 -->
                     </tbody>
                 </table>
             </div>
@@ -149,7 +140,6 @@
     </div>
 </div>
 
-<!-- 添加/编辑排课模态框 -->
 <div class="modal fade" id="scheduleModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -158,14 +148,12 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <!-- 初始状态：加载中 -->
                 <div id="modalLoading" class="text-center py-5">
                     <i class="fas fa-spinner fa-spin me-2"></i>加载中...
                 </div>
-                <!-- 表单容器：默认隐藏 -->
                 <form id="scheduleForm" style="display: none;">
                     <input type="hidden" id="scheduleId">
-                    <input type="hidden" id="courseId"> <!-- 存储课程ID用于关联更新 -->
+                    <input type="hidden" id="courseId">
 
                     <div class="row">
                         <div class="col-md-6">
@@ -253,7 +241,6 @@
                         <div class="invalid-feedback">请选择学期</div>
                     </div>
                 </form>
-                <!-- 错误状态：默认隐藏 -->
                 <div id="modalError" class="text-center py-5 text-danger" style="display: none;">
                     <i class="fas fa-exclamation-circle me-2"></i>
                     <span id="modalErrorText">加载失败，请重试</span>
@@ -267,7 +254,6 @@
     </div>
 </div>
 
-<!-- 错误详情模态框 -->
 <div class="modal fade error-detail-modal" id="errorDetailModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -285,12 +271,9 @@
     </div>
 </div>
 
-<!-- 引入 Bootstrap JS（确保是完整版本，包含模态框组件） -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // 全局变量：存储模态框实例
     let scheduleModalInstance = null;
-    // 定义允许的课程时间段（与教师端一致）
     const allowedTimeSlots = [
         { start: '08:00', end: '09:35' },
         { start: '09:50', end: '11:25' },
@@ -301,23 +284,16 @@
         { start: '19:00', end: '20:35' }
     ];
 
-    // 页面加载完成后初始化
     document.addEventListener('DOMContentLoaded', function() {
-        // 初始化模态框实例（提前初始化，避免重复创建）
         scheduleModalInstance = new bootstrap.Modal(document.getElementById('scheduleModal'), {
-            backdrop: 'static', // 点击背景不关闭模态框
-            keyboard: false // 不响应键盘ESC关闭
+            backdrop: 'static',
+            keyboard: false
         });
-
-        // 权限检查
         checkPermission();
-        // 加载排课列表
         loadSchedules();
-        // 预加载开始时间选项（提前填充，避免重复操作）
         fillStartTimeOptions();
     });
 
-    // 权限检查
     function checkPermission() {
         const credentials = localStorage.getItem('credentials');
         if (!credentials) {
@@ -327,26 +303,20 @@
 
         fetch('/api/auth/me', {
             method: 'GET',
-            headers: {
-                'Authorization': 'Basic ' + btoa(credentials)
-            }
+            headers: { 'Authorization': 'Basic ' + btoa(credentials) }
         })
             .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP状态码: ${response.status}，获取用户信息失败`);
-                }
+                if (!response.ok) throw new Error(`HTTP状态码: ${response.status}，获取用户信息失败`);
                 return response.json();
             })
             .then(data => {
                 const role = data.role[0].authority;
                 const currentPath = window.location.pathname;
 
-                // 学生权限限制
                 if (role === 'STUDENT') {
                     window.location.href = '/student/index.html';
                 }
 
-                // 教师权限限制
                 if (role === 'TEACHER') {
                     window.location.href = '/teacher/index.html';
                 }
@@ -360,13 +330,11 @@
             });
     }
 
-    // 新增：加载教室列表
     function loadClassrooms(isAddModal = false) {
         return new Promise((resolve, reject) => {
             const classroomSelect = document.getElementById('classroomSelect');
             const classroomSelectError = document.getElementById('classroomSelectError');
 
-            // 仅添加模态框需要显示加载中
             if (isAddModal) {
                 classroomSelect.innerHTML = '<option value="">加载中...</option>';
                 classroomSelect.disabled = true;
@@ -374,14 +342,10 @@
 
             fetch('/api/admin/all-classrooms', {
                 method: 'GET',
-                headers: {
-                    'Authorization': 'Basic ' + btoa(getCredentials())
-                }
+                headers: { 'Authorization': 'Basic ' + btoa(getCredentials()) }
             })
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP状态码: ${response.status}，服务器返回错误`);
-                    }
+                    if (!response.ok) throw new Error(`HTTP状态码: ${response.status}，服务器返回错误`);
                     return response.json();
                 })
                 .then(classrooms => {
@@ -400,12 +364,11 @@
                         return;
                     }
 
-                    // 遍历教室列表，添加到下拉框
                     classrooms.forEach(classroom => {
                         const option = document.createElement('option');
-                        option.value = classroom.name; // 存储教室名称（与原输入框逻辑一致）
-                        option.textContent = classroom.name; // 显示教室名称
-                        option.dataset.classroomId = classroom.id; // 存储教室ID（备用）
+                        option.value = classroom.name;
+                        option.textContent = classroom.name;
+                        option.dataset.classroomId = classroom.id;
                         classroomSelect.appendChild(option);
                     });
                     resolve();
@@ -421,57 +384,46 @@
         });
     }
 
-    // 准备添加排课模态框（修改：添加加载教室列表）
     async function prepareAddModal() {
-        // 显示加载状态
         document.getElementById('modalLoading').style.display = 'block';
         document.getElementById('scheduleForm').style.display = 'none';
         document.getElementById('modalError').style.display = 'none';
 
         try {
-            // 重置表单数据
             document.getElementById('scheduleForm').reset();
             document.getElementById('scheduleId').value = '';
             document.getElementById('courseId').value = '';
             document.getElementById('timeError').style.display = 'none';
             document.getElementById('courseSelectError').style.display = 'none';
             document.getElementById('teacherSelectError').style.display = 'none';
-            document.getElementById('classroomSelectError').style.display = 'none'; // 新增
+            document.getElementById('classroomSelectError').style.display = 'none';
 
-            // 重置结束时间选择框
             const endTimeSelect = document.getElementById('endTime');
             endTimeSelect.innerHTML = '<option value="" class="select-hint">请先选择开始时间</option>';
             endTimeSelect.disabled = true;
 
-            // 清除所有字段错误样式
             document.querySelectorAll('.form-control, .form-select').forEach(el => {
                 el.classList.remove('is-invalid');
             });
 
-            // 关键修改：添加加载教室列表
             await Promise.all([
                 loadCourses(true),
                 loadTeachers(true),
-                loadClassrooms(true) // 新增：加载教室列表
+                loadClassrooms(true)
             ]);
 
-            // 数据加载完成，显示表单
             document.getElementById('modalLoading').style.display = 'none';
             document.getElementById('scheduleForm').style.display = 'block';
             document.getElementById('modalTitle').textContent = '添加排课';
 
-            // 显示模态框（使用提前初始化的实例）
             scheduleModalInstance.show();
         } catch (error) {
-            // 加载失败，显示错误状态
             document.getElementById('modalLoading').style.display = 'none';
             document.getElementById('modalError').style.display = 'block';
             document.getElementById('modalErrorText').textContent = `加载失败：${error.message}`;
 
-            // 显示详细错误
             showErrorDetail('添加排课初始化失败', error.message + '\n可能原因：\n1. 网络连接异常\n2. 服务器接口未响应\n3. 课程/教师/教室数据加载失败');
 
-            // 3秒后自动关闭错误状态，显示表单（允许用户手动重试）
             setTimeout(() => {
                 document.getElementById('modalError').style.display = 'none';
                 document.getElementById('scheduleForm').style.display = 'block';
@@ -480,13 +432,11 @@
         }
     }
 
-    // 加载课程列表（添加参数isAddModal，区分添加/编辑场景）
     function loadCourses(isAddModal = false) {
         return new Promise((resolve, reject) => {
             const courseSelect = document.getElementById('courseSelect');
             const courseSelectError = document.getElementById('courseSelectError');
 
-            // 仅添加模态框需要显示加载中（编辑模态框已单独处理）
             if (isAddModal) {
                 courseSelect.innerHTML = '<option value="">加载中...</option>';
                 courseSelect.disabled = true;
@@ -494,14 +444,10 @@
 
             fetch('/api/courses/admin/all', {
                 method: 'GET',
-                headers: {
-                    'Authorization': 'Basic ' + btoa(getCredentials())
-                }
+                headers: { 'Authorization': 'Basic ' + btoa(getCredentials()) }
             })
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP状态码: ${response.status}，服务器返回错误`);
-                    }
+                    if (!response.ok) throw new Error(`HTTP状态码: ${response.status}，服务器返回错误`);
                     return response.json();
                 })
                 .then(courses => {
@@ -516,7 +462,7 @@
                         courseSelect.appendChild(emptyOption);
                         courseSelectError.textContent = "暂无课程数据，请先在课程管理中添加课程";
                         courseSelectError.style.display = 'block';
-                        resolve(); // 即使无数据也 resolve
+                        resolve();
                         return;
                     }
 
@@ -535,12 +481,12 @@
                     courseSelect.disabled = false;
                     courseSelectError.style.display = 'block';
                     courseSelectError.textContent = "加载课程列表失败，点击保存可重试";
-                    reject(error); // 加载失败 reject
+                    reject(error);
                 });
         });
     }
 
-    // 加载教师列表（适配后端返回的 TeacherUserDTO，不依赖 roles 字段）
+    // 核心修复：适配后端返回的 teacherId 字段（原期望 id，现改为 teacherId）
     function loadTeachers(isAddModal = false) {
         return new Promise((resolve, reject) => {
             const teacherSelect = document.getElementById('teacherSelect');
@@ -551,54 +497,54 @@
                 teacherSelect.disabled = true;
             }
 
-            // 保持原请求路径不变
             fetch('/api/admin/all-teachers', {
                 method: 'GET',
-                headers: {
-                    'Authorization': 'Basic ' + btoa(getCredentials())
-                }
+                headers: { 'Authorization': 'Basic ' + btoa(getCredentials()) }
             })
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP状态码: ${response.status}，服务器返回错误`);
-                    }
+                    if (!response.ok) throw new Error(`HTTP状态码: ${response.status}，服务器返回错误`);
                     return response.json();
                 })
-                .then(teacherUsers => { // 此时返回的是 TeacherUserDTO 列表
+                .then(teachers => {
                     teacherSelect.innerHTML = '<option value="">请选择教师</option>';
                     teacherSelect.disabled = false;
                     teacherSelectError.style.display = 'none';
 
-                    if (teacherUsers.length === 0) {
+                    if (teachers.length === 0) {
                         const emptyOption = document.createElement('option');
                         emptyOption.value = "";
                         emptyOption.textContent = "暂无教师数据，请先添加教师";
                         teacherSelect.appendChild(emptyOption);
-                        teacherSelectError.textContent = "暂无教师数据，请先在用户管理中添加教师账号";
+                        teacherSelectError.textContent = "暂无教师数据，请先在教师管理中添加教师";
                         teacherSelectError.style.display = 'block';
                         resolve();
                         return;
                     }
 
                     let hasValidTeacher = false;
-                    teacherUsers.forEach(dto => {
-                        if (!dto.userId || (!dto.name && !dto.username)) {
-                            console.warn('无效的教师用户数据:', dto);
+                    teachers.forEach(teacher => {
+                        // 修复：后端返回的是 teacherId，而非 id
+                        const teacherId = teacher.teacherId;
+                        // 后端返回的是 name（User 的真实姓名）
+                        const teacherName = teacher.name || teacher.username || '未知姓名';
+
+                        if (!teacherId) {
+                            console.warn('无效的教师数据（缺少教师ID）:', teacher);
                             return;
                         }
-                        // 优先显示真实姓名（dto.name），无则显示用户名（dto.username）
-                        const teacherName = dto.name || dto.username;
+
                         const option = document.createElement('option');
-                        option.value = dto.userId; // 存储 User 的 ID（与后端 ScheduleDTO.teacherId 一致）
-                        option.textContent = teacherName;
+                        option.value = teacherId; // 传递 Teachers 表的 teacherId
+                        option.textContent = teacherName; // 显示教师真实姓名
                         option.dataset.teacherName = teacherName;
+                        option.dataset.teacherUserId = teacher.userId; // 保留 User ID 供编辑匹配
                         teacherSelect.appendChild(option);
                         hasValidTeacher = true;
                     });
 
                     if (!hasValidTeacher) {
                         teacherSelect.innerHTML = '<option value="">暂无有效教师数据</option>';
-                        teacherSelectError.textContent = "所有教师用户数据不完整，请联系管理员修复";
+                        teacherSelectError.textContent = "所有教师数据不完整，请联系管理员修复";
                         teacherSelectError.style.display = 'block';
                     }
                     resolve();
@@ -613,7 +559,7 @@
                 });
         });
     }
-    // 填充开始时间选择框选项（提前加载，避免重复创建）
+
     function fillStartTimeOptions() {
         const startTimeSelect = document.getElementById('startTime');
         startTimeSelect.innerHTML = '<option value="">请选择开始时间</option>';
@@ -627,7 +573,6 @@
         });
     }
 
-    // 联动填充结束时间选项
     function syncEndTimeOptions() {
         const startTime = document.getElementById('startTime').value;
         const endTimeSelect = document.getElementById('endTime');
@@ -664,7 +609,6 @@
         }
     }
 
-    // 加载排课信息（页面列表）
     function loadSchedules(query = '') {
         const url = query ? `/api/admin/schedules?q=${encodeURIComponent(query)}` : '/api/admin/schedules';
         const tbody = document.querySelector('#schedulesTable tbody');
@@ -673,14 +617,10 @@
 
         fetch(url, {
             method: 'GET',
-            headers: {
-                'Authorization': 'Basic ' + btoa(getCredentials())
-            }
+            headers: { 'Authorization': 'Basic ' + btoa(getCredentials()) }
         })
             .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP状态码: ${response.status}，服务器返回错误`);
-                }
+                if (!response.ok) throw new Error(`HTTP状态码: ${response.status}，服务器返回错误`);
                 return response.json();
             })
             .then(data => {
@@ -693,12 +633,7 @@
                             4: '星期四', 5: '星期五', 6: '星期六', 7: '星期日'
                         };
 
-                        let teacherName = '未知教师';
-                        if (schedule.teacherUser && schedule.teacherUser.teacher) {
-                            teacherName = schedule.teacherUser.teacher.name || schedule.teacherUser.username;
-                        } else if (schedule.teacher) {
-                            teacherName = schedule.teacher;
-                        }
+                        const teacherName = schedule.teacher || '未知教师';
 
                         const row = document.createElement('tr');
                         row.innerHTML = `
@@ -731,80 +666,75 @@
             });
     }
 
-    // 搜索排课
     function searchSchedules() {
         const query = document.getElementById('searchInput').value;
         loadSchedules(query);
     }
 
-    // 编辑排课（修改：添加加载教室列表）
     async function editSchedule(scheduleId) {
-        // 显示加载状态
         document.getElementById('modalLoading').style.display = 'block';
         document.getElementById('scheduleForm').style.display = 'none';
         document.getElementById('modalError').style.display = 'none';
 
         try {
-            // 获取排课详情
             const response = await fetch(`/api/admin/schedules/${scheduleId}`, {
                 method: 'GET',
-                headers: {
-                    'Authorization': 'Basic ' + btoa(getCredentials())
-                }
+                headers: { 'Authorization': 'Basic ' + btoa(getCredentials()) }
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP状态码: ${response.status}，获取排课详情失败`);
-            }
+            if (!response.ok) throw new Error(`HTTP状态码: ${response.status}，获取排课详情失败`);
 
             const schedule = await response.json();
 
-            // 并行加载课程、教师、教室列表（修改：添加教室列表）
             await Promise.all([
                 loadCourses(false),
                 loadTeachers(false),
-                loadClassrooms(false) // 新增：加载教室列表
+                loadClassrooms(false)
             ]);
 
-            // 填充表单数据
             document.getElementById('scheduleId').value = schedule.id;
             document.getElementById('courseId').value = schedule.course ? schedule.course.id : '';
             document.getElementById('weekday').value = schedule.weekday || '';
             document.getElementById('term').value = schedule.term || '';
             document.getElementById('timeError').style.display = 'none';
 
-            // 选中课程
             const courseSelect = document.getElementById('courseSelect');
             if (schedule.course && schedule.course.id) {
                 courseSelect.value = schedule.course.id;
             }
 
-            // 选中教师
+            // 编辑时匹配教师：优先用 teacherUser.teacher.id（Teachers 表ID）
             const teacherSelect = document.getElementById('teacherSelect');
+            let teacherOption = null;
+
             if (schedule.teacherUser && schedule.teacherUser.teacher && schedule.teacherUser.teacher.id) {
-                teacherSelect.value = schedule.teacherUser.teacher.id;
-            } else if (schedule.teacher) {
-                const teacherOption = Array.from(teacherSelect.options).find(
-                    opt => opt.dataset.teacherName === schedule.teacher
+                teacherOption = Array.from(teacherSelect.options).find(
+                    opt => opt.value == schedule.teacherUser.teacher.id
                 );
-                if (teacherOption) {
-                    teacherOption.selected = true;
-                }
+            }
+            // 其次用教师姓名匹配
+            if (!teacherOption && schedule.teacher) {
+                teacherOption = Array.from(teacherSelect.options).find(
+                    opt => opt.dataset.teacherName === schedule.teacher || opt.textContent === schedule.teacher
+                );
             }
 
-            // 新增：选中教室
+            if (teacherOption) {
+                teacherOption.selected = true;
+            } else {
+                alert('当前排课的教师信息未找到，请重新选择教师');
+            }
+
             const classroomSelect = document.getElementById('classroomSelect');
             if (schedule.classroom && schedule.classroom.name) {
                 classroomSelect.value = schedule.classroom.name;
             }
 
-            // 填充开始时间并联动结束时间
             const startTimeSelect = document.getElementById('startTime');
             const startTime = schedule.startTime || '';
             startTimeSelect.value = startTime;
             syncEndTimeOptions();
 
-            // 显示表单和模态框
             document.getElementById('modalLoading').style.display = 'none';
             document.getElementById('scheduleForm').style.display = 'block';
             document.getElementById('modalTitle').textContent = '编辑排课';
@@ -824,7 +754,6 @@
         }
     }
 
-    // 删除排课
     function deleteSchedule(scheduleId, courseId) {
         if (!confirm('确定要删除这个排课记录吗？\n提示：课程信息不会被自动删除，如需删除课程请前往课程管理页面操作。')) {
             return;
@@ -832,9 +761,7 @@
 
         fetch(`/api/admin/schedules/${scheduleId}`, {
             method: 'DELETE',
-            headers: {
-                'Authorization': 'Basic ' + btoa(getCredentials())
-            }
+            headers: { 'Authorization': 'Basic ' + btoa(getCredentials()) }
         })
             .then(response => {
                 if (!response.ok) {
@@ -858,47 +785,44 @@
             });
     }
 
-    // 保存排课信息（修改：获取教室选择值）
     async function saveSchedule() {
-        // 第一步：校验必填字段
         const isFieldsComplete = validateRequiredFields();
         if (!isFieldsComplete) {
             return;
         }
 
-        // 第二步：校验时间合规性
         const isTimeValid = validateTimeSlot();
         if (!isTimeValid) {
             alert('您选择的课程时间不符合课程规定');
             return;
         }
 
-        // 第三步：获取表单数据（修改：获取教室选择值）
         const scheduleId = document.getElementById('scheduleId').value;
         const courseId = document.getElementById('courseId').value || document.getElementById('courseSelect').value;
-        const teacherId = document.getElementById('teacherSelect').value;
-        const classroomName = document.getElementById('classroomSelect').value.trim(); // 修改：从下拉框获取
+        const teacherId = document.getElementById('teacherSelect').value; // 传递 Teachers 表的 teacherId
+        const classroomName = document.getElementById('classroomSelect').value.trim();
         const courseSelect = document.getElementById('courseSelect');
         const teacherSelect = document.getElementById('teacherSelect');
 
-        // 数据合法性校验（修改：添加教室校验）
         if (!courseId || !teacherId || !classroomName) {
             alert('课程、教师或教室选择无效，请重新选择');
-            // 尝试重新加载列表
             await Promise.all([loadCourses(), loadTeachers(), loadClassrooms()]);
             return;
         }
 
+        const selectedTeacherOption = teacherSelect.options[teacherSelect.selectedIndex];
+        const teacherName = selectedTeacherOption.dataset.teacherName || selectedTeacherOption.textContent;
+
         const scheduleData = {
             courseId: parseInt(courseId),
-            teacherId: parseInt(teacherId),
-            classroomName: classroomName, // 保持原字段名，兼容后端
+            teacherId: parseInt(teacherId), // 后端接收 Teachers 表的 teacherId
+            classroomName: classroomName,
             weekday: parseInt(document.getElementById('weekday').value) || null,
             startTime: document.getElementById('startTime').value,
             endTime: document.getElementById('endTime').value,
             term: document.getElementById('term').value,
             courseName: courseSelect.options[courseSelect.selectedIndex].dataset.courseName || '',
-            teacherName: teacherSelect.options[teacherSelect.selectedIndex].dataset.teacherName || ''
+            teacherName: teacherName
         };
 
         const method = scheduleId ? 'PUT' : 'POST';
@@ -926,18 +850,17 @@
         } catch (error) {
             console.error('保存排课失败:', error);
             if (confirm(`保存失败：${error.message}\n是否重试？`)) {
-                saveSchedule(); // 重试
+                saveSchedule();
             } else {
                 showErrorDetail(scheduleId ? '编辑排课失败' : '添加排课失败', error.message);
             }
         }
     }
 
-    // 校验必填字段（修改：添加教室字段校验）
     function validateRequiredFields() {
         const requiredFields = [
             { id: 'courseSelect', name: '课程' },
-            { id: 'classroomSelect', name: '教室' }, // 修改：替换原classroomName为classroomSelect
+            { id: 'classroomSelect', name: '教室' },
             { id: 'teacherSelect', name: '教师' },
             { id: 'weekday', name: '星期' },
             { id: 'startTime', name: '开始时间' },
@@ -968,7 +891,6 @@
         return isValid;
     }
 
-    // 验证时间合规性
     function validateTimeSlot() {
         const startTime = document.getElementById('startTime').value;
         const endTime = document.getElementById('endTime').value;
@@ -986,19 +908,15 @@
         return isMatch;
     }
 
-    // 获取存储的凭据
     function getCredentials() {
         return localStorage.getItem('credentials') || '';
     }
 
-    // 退出函数
     function logout() {
         localStorage.removeItem('credentials');
         fetch('/api/auth/logout', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            headers: { 'Content-Type': 'application/json' }
         })
             .then(() => {
                 window.location.href = '/login.html';
@@ -1008,21 +926,18 @@
             });
     }
 
-    // 显示错误详情模态框
     function showErrorDetail(title, content) {
         document.getElementById('errorDetailModal').querySelector('.modal-title').textContent = title;
         document.getElementById('errorDetailContent').textContent = content;
         new bootstrap.Modal(document.getElementById('errorDetailModal')).show();
     }
 
-    // 回车搜索
     document.getElementById('searchInput').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             searchSchedules();
         }
     });
 
-    // 输入框变化时清除错误样式
     document.querySelectorAll('.form-control, .form-select').forEach(el => {
         el.addEventListener('input', function() {
             this.classList.remove('is-invalid');

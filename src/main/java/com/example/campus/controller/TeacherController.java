@@ -18,20 +18,23 @@ import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
-// 自定义DTO：用于返回教师用户的核心信息（避免直接返回实体暴露过多字段）
+// 自定义DTO：返回 Teachers 表的 teacherId 和 User 的姓名/用户名
 class TeacherUserDTO {
-    private Long userId; // User 实体的 ID
-    private String name; // User 实体的姓名
-    private String username; // User 实体的用户名
+    private Long teacherId; // Teachers 表的主键ID（前端需要用这个关联排课）
+    private Long userId;    // User 实体的 ID
+    private String name;    // User 实体的真实姓名
+    private String username;// User 实体的用户名
 
-    // 构造方法：通过 Teacher 实体和关联的 User 组装DTO
+    // 构造方法：赋值所有字段
     public TeacherUserDTO(Teacher teacher) {
+        this.teacherId = teacher.getId(); // Teachers 表主键ID
         this.userId = teacher.getUser().getId();
-        this.name = teacher.getUser().getName(); // 假设 User 有 name 字段（真实姓名）
-        this.username = teacher.getUser().getUsername(); // 用户名
+        this.name = teacher.getUser().getName(); // 优先显示真实姓名
+        this.username = teacher.getUser().getUsername(); // 用户名备用
     }
 
-    // getter
+    // getter方法（前端需要通过这些方法获取字段值）
+    public Long getTeacherId() { return teacherId; }
     public Long getUserId() { return userId; }
     public String getName() { return name; }
     public String getUsername() { return username; }
@@ -50,23 +53,26 @@ public class TeacherController {
     @Autowired
     private TeacherRepository teacherRepository;
 
-    // 原有接口不变...
+    // 原有接口不变：教师查询自己的排课
     @GetMapping("/teacher/schedule")
     public List<com.example.campus.entity.Schedule> getTeacherSchedule(@RequestParam(defaultValue = "1") Integer weekday,
                                                                        @AuthenticationPrincipal UserDetails user) {
         return scheduleRepo.findByTeacherAndWeekday(user.getUsername(), weekday);
     }
 
+    // 原有接口不变：查询待审批请假
     @GetMapping("/teacher/leaves/pending")
     public List<LeaveRequest> getPendingLeaves() {
         return leaveRepo.findByStatus(LeaveStatus.PENDING);
     }
 
+    // 原有接口不变：查询已审批请假
     @GetMapping("/teacher/leaves/approved")
     public List<LeaveRequest> getApprovedLeaves() {
         return leaveRepo.findByStatusNot(LeaveStatus.PENDING);
     }
 
+    // 原有接口不变：审批请假
     @PostMapping("/teacher/leaves/{id}/review")
     public ResponseEntity<?> reviewLeave(@PathVariable Long id,
                                          @RequestBody LeaveReviewRequest request,
@@ -85,16 +91,14 @@ public class TeacherController {
         return ResponseEntity.ok(savedLeave);
     }
 
-    // 核心修改：不依赖 roles 字段，通过 Teacher 关联的 User 获取教师信息
+    // 核心接口：管理员获取所有教师列表（供排课使用）
     @GetMapping("/admin/all-teachers")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<TeacherUserDTO>> getAllTeachersForAdmin() {
-        // 1. 查询所有 Teacher 实体（每个 Teacher 都关联了一个 User）
+        // 查询所有关联了User的有效教师
         List<Teacher> allTeachers = teacherRepository.findAll();
-
-        // 2. 转换为 TeacherUserDTO（仅保留 User 的核心信息：id、姓名、用户名）
         List<TeacherUserDTO> teacherUsers = allTeachers.stream()
-                .filter(teacher -> teacher.getUser() != null) // 过滤没有关联 User 的无效教师
+                .filter(teacher -> teacher.getUser() != null) // 过滤无效数据
                 .map(TeacherUserDTO::new)
                 .collect(Collectors.toList());
 

@@ -41,32 +41,39 @@ public class AuthController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // 学生注册（添加事务+修复学号递增）
+    // 学生注册（完全去掉姓名功能：无需输入、无需校验、自动填充默认值）
     @Transactional
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody LoginRequest req) {
         try {
-            // 1. 验证用户名是否已存在
+            // 1. 仅验证用户名是否为空（核心需求：只限制用户名不能为空）
+            if (req.getUsername() == null || req.getUsername().trim().isEmpty()) {
+                logger.warn("学生注册：用户名为空");
+                return ResponseEntity.badRequest().body("用户名不能为空");
+            }
+            // 2. 验证用户名是否已存在（原有逻辑保留）
             if (userRepository.findByUsername(req.getUsername()).isPresent()) {
                 logger.warn("用户名已存在：{}", req.getUsername());
                 return ResponseEntity.badRequest().body("用户名已存在");
             }
 
-            // 2. 创建用户对象（学生角色）
+            // 3. 创建用户对象（核心修改：删除姓名相关校验和输入，自动填充默认值）
             User u = new User();
             u.setUsername(req.getUsername());
             u.setPassword(passwordEncoder.encode(req.getPassword()));
             u.setRole(Role.STUDENT);
             u.setEmail(req.getEmail());
+            // 学生姓名自动填充默认值（避免数据库非空约束报错），无需用户输入
+            u.setName( req.getUsername()); // 用用户名拼接默认姓名，确保唯一性
             u.setCreatedAt(Timestamp.from(Instant.now()));
             User savedUser = userRepository.save(u);
-            logger.info("用户创建成功：{}，用户ID：{}", req.getUsername(), savedUser.getId());
+            logger.info("用户创建成功：{}，用户ID：{}，默认姓名：{}", req.getUsername(), savedUser.getId(), u.getName());
 
-            // 3. 生成唯一递增学号
+            // 4. 生成唯一递增学号（原有逻辑保留）
             String studentNo = generateUniqueStudentNo();
             logger.info("为用户 {} 分配学号：{}", req.getUsername(), studentNo);
 
-            // 4. 创建学生记录并关联用户
+            // 5. 创建学生记录并关联用户（原有逻辑保留）
             Student student = new Student();
             student.setUser(savedUser);
             student.setStudentNo(studentNo);
@@ -84,7 +91,7 @@ public class AuthController {
         }
     }
 
-    // 管理员注册（保持原有逻辑不变）
+    // 管理员注册（保持原有逻辑：仅注册教师时要求姓名，其他角色按需处理）
     @PostMapping("/admin/register")
     public ResponseEntity<?> adminRegister(@RequestBody AdminRegisterRequest req,
                                            @AuthenticationPrincipal org.springframework.security.core.userdetails.User currentUser) {
@@ -100,12 +107,18 @@ public class AuthController {
                 return ResponseEntity.badRequest().body("用户名已存在");
             }
 
+            // 核心保留：注册教师时必须填写姓名（满足需求）
+            if (Role.TEACHER.equals(req.getRole()) && (req.getName() == null || req.getName().trim().isEmpty())) {
+                logger.warn("管理员注册教师：姓名不能为空，用户名：{}", req.getUsername());
+                return ResponseEntity.badRequest().body("教师姓名不能为空");
+            }
+
             User user = new User();
             user.setUsername(req.getUsername());
             user.setPassword(passwordEncoder.encode(req.getPassword()));
             user.setRole(req.getRole());
             user.setEmail(req.getEmail());
-            user.setName(req.getName());
+            user.setName(req.getName()); // 管理员注册时传递的姓名（教师必填，其他角色可选）
             user.setCreatedAt(Timestamp.from(Instant.now()));
 
             if (Role.STUDENT.equals(req.getRole()) && req.getStudent() != null) {
@@ -138,8 +151,9 @@ public class AuthController {
                 teacher.setDepartment(req.getTeacher().getDepartment() != null ? req.getTeacher().getDepartment().trim() : "");
                 teacher.setPhone(req.getTeacher().getPhone() != null ? req.getTeacher().getPhone().trim() : "");
                 teacher.setOffice(req.getTeacher().getOffice() != null ? req.getTeacher().getOffice().trim() : "");
+                teacher.setName(req.getName()); // 教师姓名从管理员注册参数中获取（必填）
                 teacherRepository.save(teacher);
-                logger.info("管理员注册教师成功：{}，教师编号：{}", req.getUsername(), req.getTeacher().getTeacherNo().trim());
+                logger.info("管理员注册教师成功：{}，教师编号：{}，姓名：{}", req.getUsername(), req.getTeacher().getTeacherNo().trim(), req.getName());
                 return ResponseEntity.ok("注册成功");
             }
 
@@ -164,7 +178,7 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    // 生成唯一递增学号（修复默认值，避免 00000001）
+    // 生成唯一递增学号（保持原有逻辑不变）
     private String generateUniqueStudentNo() {
         int maxRetry = 5;
         int retryCount = 0;

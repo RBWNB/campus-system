@@ -27,7 +27,8 @@ public class Schedule {
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "schedules"})
     private Classroom classroom;
 
-    private String teacher;
+    // 原逻辑存储的是教师用户名，需替换为**教师真实姓名**
+    private String teacher; // 现在存储教师真实姓名
     private Integer weekday;
     private LocalTime startTime;
     private LocalTime endTime;
@@ -36,5 +37,5 @@ public class Schedule {
     // 解决 Jackson 序列化 Lazy 关系时的代理对象错误
     @ManyToOne
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "teachers", "students"})
-    private User teacherUser;
+    private User teacherUser; // 关联教师用户（用于校验）
 }

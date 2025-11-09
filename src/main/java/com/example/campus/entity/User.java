@@ -25,7 +25,10 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    // 确保 name 字段非空（教师用户必须填写姓名）
+    @Column(nullable = false)
     private String name;
+
     private String email;
 
     @Column(name = "created_at")
@@ -39,4 +42,12 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Student student;
 
+    // 新增：保存时自动同步姓名到关联的 Teacher 实体
+    @PrePersist
+    @PreUpdate
+    public void syncTeacherName() {
+        if (this.teacher != null && this.name != null) {
+            this.teacher.setName(this.name);
+        }
+    }
 }

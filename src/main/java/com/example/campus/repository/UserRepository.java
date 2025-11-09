@@ -1,7 +1,7 @@
 package com.example.campus.repository;
 
 import com.example.campus.entity.User;
-import com.example.campus.entity.Role; // 确保 Role 枚举类型已导入
+import com.example.campus.entity.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,14 +17,20 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "LOWER(u.name) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     List<User> searchByKeyword(@Param("keyword") String keyword);
 
-    // 已修改：现在接收 Role 枚举类型
     List<User> findByRole(Role role);
 
-    // 已修改：现在接收 Role 枚举类型
     @Query("SELECT u FROM User u WHERE " +
             "u.role = :role AND (" +
             "LOWER(u.username) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(u.name) LIKE LOWER(CONCAT('%', :keyword, '%'))" +
             ")")
     List<User> searchByKeywordAndRole(@Param("keyword") String keyword, @Param("role") Role role);
+
+    // 新增：查询教师用户并关联 Teacher 实体（避免懒加载问题）
+    @Query("SELECT u FROM User u JOIN FETCH u.teacher WHERE u.role = :role")
+    List<User> findTeacherUsersWithTeacher(@Param("role") Role role);
+
+    // 新增：根据教师ID查询关联的用户（用于排课详情查询）
+    @Query("SELECT u FROM User u JOIN FETCH u.teacher WHERE u.teacher.id = :teacherId")
+    Optional<User> findByTeacherId(@Param("teacherId") Long teacherId);
 }

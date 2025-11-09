@@ -80,8 +80,12 @@ public class ScheduleAdminController {
         Schedule sch = new Schedule();
         sch.setCourse(course);
         sch.setClassroom(room);
-        // 修复：用关联的 User 用户名替代 getName()（兼容原有逻辑，无需新增 name 字段也可运行）
-        sch.setTeacher(teacher.getUser().getUsername());
+        // 优先显示User的真实姓名，无则用用户名
+        sch.setTeacher(teacher.getUser() != null ?
+                (teacher.getUser().getName() != null && !teacher.getUser().getName().trim().isEmpty()
+                        ? teacher.getUser().getName()
+                        : teacher.getUser().getUsername())
+                : "未知教师");
         sch.setTeacherUser(teacher.getUser()); // 关联教师用户
         sch.setWeekday(dto.getWeekday());
         sch.setStartTime(s);
@@ -96,7 +100,7 @@ public class ScheduleAdminController {
         return ResponseEntity.ok(sch);
     }
 
-    // 获取所有排课
+    // 获取所有排课（支持搜索课程、教室、教师）
     @GetMapping
     public List<Schedule> listAll(@RequestParam(value="q", required=false) String q) {
         List<Schedule> allSchedules = scheduleRepo.findAll();
@@ -106,8 +110,11 @@ public class ScheduleAdminController {
 
         String keyword = q.trim().toLowerCase();
         return allSchedules.stream()
-                .filter(s -> (s.getCourse() != null && s.getCourse().getName().toLowerCase().contains(keyword)) ||
-                        (s.getClassroom() != null && s.getClassroom().getName().toLowerCase().contains(keyword)))
+                .filter(s ->
+                        (s.getCourse() != null && s.getCourse().getName().toLowerCase().contains(keyword)) ||
+                                (s.getClassroom() != null && s.getClassroom().getName().toLowerCase().contains(keyword)) ||
+                                (s.getTeacher() != null && s.getTeacher().toLowerCase().contains(keyword))
+                )
                 .collect(java.util.stream.Collectors.toList());
     }
 
@@ -178,8 +185,11 @@ public class ScheduleAdminController {
         // 6. 更新排课记录
         sch.setCourse(course);
         sch.setClassroom(room);
-        // 修复：用关联的 User 用户名替代 getName()
-        sch.setTeacher(teacher.getUser().getUsername());
+        sch.setTeacher(teacher.getUser() != null ?
+                (teacher.getUser().getName() != null && !teacher.getUser().getName().trim().isEmpty()
+                        ? teacher.getUser().getName()
+                        : teacher.getUser().getUsername())
+                : "未知教师");
         sch.setTeacherUser(teacher.getUser());
         sch.setWeekday(dto.getWeekday());
         sch.setStartTime(s);

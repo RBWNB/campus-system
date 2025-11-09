@@ -172,7 +172,8 @@
 
                     <div class="mb-3">
                         <label for="name" class="form-label">姓名:</label>
-                        <input type="text" class="form-control" id="name">
+                        <input type="text" class="form-control" id="name" required>
+                        <div class="invalid-feedback">请输入姓名</div>
                     </div>
 
                     <div class="mb-3">
@@ -286,6 +287,7 @@
         // 验证必填字段
         const requiredFields = [
             { id: 'username', message: '请输入用户名' },
+            { id: 'name', message: '请输入姓名' }, // 新增姓名必填验证
             { id: 'role', message: '请选择角色' }
         ];
 
@@ -635,11 +637,12 @@
             userData.password = password;
         }
 
-        // 角色为教师时，并且是添加模式，添加教师专属信息
+        // 角色为教师时，并且是添加模式，添加教师专属信息（包含姓名字段）
         if (userData.role === 'TEACHER' && !userId) {
             const teacherNo = document.getElementById('teacherNo').value.trim();
-            // 构建教师信息对象
+            // 构建教师信息对象，添加name属性（与用户姓名保持一致）
             userData.teacher = {
+                name: userData.name, // 将用户姓名同步到教师表的name属性
                 teacherNo: teacherNo,
                 title: document.getElementById('title').value.trim(),
                 department: document.getElementById('department').value.trim(),
@@ -703,6 +706,15 @@
     document.addEventListener('DOMContentLoaded', function() {
         // 用户名实时验证
         document.getElementById('username').addEventListener('blur', function() {
+            if (!this.value.trim()) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        });
+
+        // 姓名实时验证（新增）
+        document.getElementById('name').addEventListener('blur', function() {
             if (!this.value.trim()) {
                 this.classList.add('is-invalid');
             } else {
