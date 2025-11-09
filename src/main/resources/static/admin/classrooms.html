@@ -200,20 +200,29 @@
             });
     }
 
-    // 加载教室信息
     function loadClassrooms(query = '') {
         const url = query ? `/api/admin/classrooms?q=${encodeURIComponent(query)}` : '/api/admin/classrooms';
 
         fetch(url, {
             method: 'GET',
             headers: {
-                'Authorization': 'Basic ' + btoa(getCredentials())
+                'Authorization': 'Basic ' + btoa(getCredentials()),
+                'Accept': 'application/json'
             }
         })
             .then(response => {
                 if (!response.ok) {
-                    if (response.status === 401) window.location.href = '/login.html';
-                    throw new Error('Network response was not ok');
+                    // 更详细的错误处理
+                    if (response.status === 401) {
+                        window.location.href = '/login.html';
+                    } else if (response.status === 404) {
+                        console.error('API endpoint not found:', url);
+                        alert('服务器未找到相关接口，请联系管理员');
+                    } else if (response.status === 500) {
+                        console.error('Server error:', response.statusText);
+                        alert('服务器内部错误，请稍后重试');
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 return response.json();
             })
@@ -229,9 +238,7 @@
                         <td>${classroom.location || ''}</td>
                         <td>${classroom.capacity || ''}</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary me-1" onclick="editClassroom(${classroom.id})">
-                                <i class="fas fa-edit"></i> 编辑
-                            </button>
+
                             <button class="btn btn-sm btn-outline-danger" onclick="deleteClassroom(${classroom.id})">
                                 <i class="fas fa-trash"></i> 删除
                             </button>
@@ -248,9 +255,10 @@
             .catch(error => {
                 console.error('获取教室信息失败:', error);
                 const tbody = document.querySelector('#classroomsTable tbody');
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">加载教室信息失败，请稍后重试。</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">加载教室信息失败，请检查网络连接或联系管理员。</td></tr>';
             });
     }
+
 
     // 搜索教室
     function searchClassrooms() {

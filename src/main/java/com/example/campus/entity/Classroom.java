@@ -1,3 +1,4 @@
+// Classroom.java
 package com.example.campus.entity;
 
 import lombok.Data;
