@@ -6,7 +6,61 @@
     <title>课程管理 - 学工管理系统</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="/css/style.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border-radius: 10px;
+        }
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+        .btn-success {
+            background-color: #198754;
+            border-color: #198754;
+        }
+        .btn-outline-danger {
+            color: #dc3545;
+            border-color: #dc3545;
+        }
+        .btn-outline-danger:hover {
+            background-color: #dc3545;
+            color: white;
+        }
+        .search-box {
+            position: relative;
+        }
+        .search-box .form-control {
+            padding-left: 2.5rem;
+        }
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+        .course-code {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1055;
+        }
+    </style>
 </head>
 <body>
 <!-- 导航栏 -->
@@ -95,11 +149,9 @@
         </div>
         <div class="card-body">
             <div class="mb-3">
-                <div class="input-group">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
                     <input type="text" id="searchInput" class="form-control" placeholder="输入课程代码或名称进行搜索">
-                    <button class="btn btn-outline-primary" onclick="searchCourses()">
-                        <i class="fas fa-search"></i> 搜索
-                    </button>
                 </div>
             </div>
 
@@ -123,7 +175,7 @@
     </div>
 </div>
 
-<!-- 添加/编辑课程模态框 -->
+<!-- 添加课程模态框 -->
 <div class="modal fade" id="courseModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -138,37 +190,15 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="courseCodeSelect" class="form-label">选择课程代码:</label>
-                                <select class="form-select" id="courseCodeSelect" onchange="onCourseCodeChange()" required>
-                                    <option value="">请选择课程代码</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">搜索课程:</label>
-                                <div class="input-group">
-                                    <input type="text" class="form-control" id="courseCodeSearch"
-                                           placeholder="输入课程代码搜索">
-                                    <button class="btn btn-outline-secondary" type="button" onclick="searchCourseCodes()">
-                                        <i class="fas fa-search"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
                                 <label for="courseCode" class="form-label">课程代码:</label>
-                                <input type="text" class="form-control" id="courseCode" readonly required>
+                                <input type="text" class="form-control" id="courseCode" required>
+                                <div class="form-text">请输入课程代码，如：CS101</div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="courseName" class="form-label">课程名称:</label>
-                                <input type="text" class="form-control" id="courseName" readonly required>
+                                <input type="text" class="form-control" id="courseName" required>
                             </div>
                         </div>
                     </div>
@@ -177,51 +207,48 @@
                         <div class="col-md-4">
                             <div class="mb-3">
                                 <label for="credit" class="form-label">学分:</label>
-                                <input type="number" class="form-control" id="credit" step="0.1" min="0" readonly>
+                                <input type="number" class="form-control" id="credit" step="0.5" min="0" max="10" required>
                             </div>
                         </div>
-                        <div class="col-md-8">
+                        <div class="col-md-4">
                             <div class="mb-3">
-                                <label for="description" class="form-label">描述:</label>
-                                <textarea class="form-control" id="description" rows="3" readonly></textarea>
+                                <label for="courseType" class="form-label">课程类型:</label>
+                                <select class="form-select" id="courseType">
+                                    <option value="必修">必修</option>
+                                    <option value="选修">选修</option>
+                                    <option value="通识">通识</option>
+                                </select>
                             </div>
                         </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="courseHours" class="form-label">总学时:</label>
+                                <input type="number" class="form-control" id="courseHours" min="1" max="200" value="32">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">描述:</label>
+                        <textarea class="form-control" id="description" rows="3"></textarea>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" onclick="saveCourse()">保存</button>
+                <button type="button" class="btn btn-primary" onclick="saveCourse()">保存到数据库</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- 课程代码搜索结果模态框 -->
-<div class="modal fade" id="courseCodeSearchModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">选择课程代码</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                        <tr>
-                            <th>课程代码</th>
-                            <th>课程名称</th>
-                            <th>学分</th>
-                            <th>操作</th>
-                        </tr>
-                        </thead>
-                        <tbody id="courseCodeSearchResults">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+<!-- 操作提示 -->
+<div class="toast align-items-center text-white bg-success border-0" id="successToast" role="alert">
+    <div class="d-flex">
+        <div class="toast-body">
+            <i class="fas fa-check-circle me-2"></i> 操作成功！
         </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
     </div>
 </div>
 
@@ -255,172 +282,6 @@
             });
     }
 
-    // 课程代码相关功能
-    let courseCodes = [];
-    let selectedCourseCode = null;
-
-    // 加载课程代码列表
-    function loadCourseCodes() {
-        fetch('/api/admin/course-management/codes', {
-            method: 'GET',
-            headers: {
-                'Authorization': 'Basic ' + btoa(getCredentials())
-            }
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                courseCodes = data;
-                populateCourseCodeSelect(data);
-            })
-            .catch(error => {
-                console.error('获取课程代码列表失败:', error);
-            });
-    }
-
-    // 填充课程代码下拉框
-    function populateCourseCodeSelect(courseCodeList) {
-        const select = document.getElementById('courseCodeSelect');
-        select.innerHTML = '<option value="">请选择课程代码</option>';
-
-        courseCodeList.forEach(code => {
-            const option = document.createElement('option');
-            option.value = code;
-            option.textContent = code;
-            select.appendChild(option);
-        });
-    }
-
-    // 课程代码选择变化事件
-    function onCourseCodeChange() {
-        const select = document.getElementById('courseCodeSelect');
-        const selectedCode = select.value;
-
-        if (selectedCode) {
-            // 根据课程代码获取课程信息
-            fetch(`/api/admin/course-management/code/${encodeURIComponent(selectedCode)}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': 'Basic ' + btoa(getCredentials())
-                }
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(course => {
-                    // 设置课程信息（只读）
-                    document.getElementById('courseCode').value = course.code;
-                    document.getElementById('courseName').value = course.name;
-                    document.getElementById('credit').value = course.credit;
-                    document.getElementById('description').value = course.description || '';
-
-                    // 保存当前选择的课程信息
-                    selectedCourseCode = {
-                        code: course.code,
-                        name: course.name,
-                        credit: course.credit,
-                        description: course.description || ''
-                    };
-                })
-                .catch(error => {
-                    console.error('获取课程信息失败:', error);
-                    alert('获取课程信息失败');
-                });
-        } else {
-            // 清空所有字段
-            document.getElementById('courseCode').value = '';
-            document.getElementById('courseName').value = '';
-            document.getElementById('credit').value = '';
-            document.getElementById('description').value = '';
-            selectedCourseCode = null;
-        }
-    }
-
-    // 搜索课程代码
-    function searchCourseCodes() {
-        const query = document.getElementById('courseCodeSearch').value.trim();
-
-        if (!query) {
-            alert('请输入搜索关键词');
-            return;
-        }
-
-        fetch(`/api/admin/course-management?q=${encodeURIComponent(query)}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': 'Basic ' + btoa(getCredentials())
-            }
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                const tbody = document.getElementById('courseCodeSearchResults');
-                tbody.innerHTML = '';
-
-                if (data && data.length > 0) {
-                    // 去重，只显示唯一的课程代码
-                    const uniqueCourses = [];
-                    const seenCodes = new Set();
-
-                    data.forEach(course => {
-                        if (!seenCodes.has(course.code)) {
-                            seenCodes.add(course.code);
-                            uniqueCourses.push(course);
-                        }
-                    });
-
-                    uniqueCourses.forEach(course => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                        <td>${course.code}</td>
-                        <td>${course.name}</td>
-                        <td>${course.credit}</td>
-                        <td>
-                            <button class="btn btn-sm btn-primary" onclick="selectCourseCodeFromSearch('${course.code}')">
-                                选择
-                            </button>
-                        </td>
-                    `;
-                        tbody.appendChild(row);
-                    });
-                } else {
-                    const row = document.createElement('tr');
-                    row.innerHTML = '<td colspan="4" class="text-center">未找到相关课程</td>';
-                    tbody.appendChild(row);
-                }
-
-                new bootstrap.Modal(document.getElementById('courseCodeSearchModal')).show();
-            })
-            .catch(error => {
-                console.error('搜索课程失败:', error);
-                alert('搜索失败');
-            });
-    }
-
-    // 从搜索结果中选择课程代码
-    function selectCourseCodeFromSearch(courseCode) {
-        const select = document.getElementById('courseCodeSelect');
-        for (let i = 0; i < select.options.length; i++) {
-            if (select.options[i].value === courseCode) {
-                select.selectedIndex = i;
-                break;
-            }
-        }
-        onCourseCodeChange();
-        bootstrap.Modal.getInstance(document.getElementById('courseCodeSearchModal')).hide();
-    }
-
     // 加载课程信息
     function loadCourses(query = '') {
         const url = query ? `/api/admin/course-management?q=${encodeURIComponent(query)}` : '/api/admin/course-management';
@@ -446,7 +307,7 @@
                     data.forEach(course => {
                         const row = document.createElement('tr');
                         row.innerHTML = `
-                        <td>${course.code || ''}</td>
+                        <td><span class="course-code">${course.code || ''}</span></td>
                         <td>${course.name || ''}</td>
                         <td>${course.credit || ''}</td>
                         <td>${course.description || ''}</td>
@@ -482,53 +343,7 @@
         document.getElementById('modalTitle').textContent = '添加课程';
         document.getElementById('courseForm').reset();
         document.getElementById('courseId').value = '';
-        document.getElementById('courseCode').value = '';
-        document.getElementById('courseName').value = '';
-        document.getElementById('credit').value = '';
-        document.getElementById('description').value = '';
-        loadCourseCodes(); // 加载课程代码列表
         new bootstrap.Modal(document.getElementById('courseModal')).show();
-    }
-
-    // 编辑课程
-    function editCourse(courseId) {
-        fetch(`/api/admin/course-management/${courseId}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': 'Basic ' + btoa(getCredentials())
-            }
-        })
-            .then(response => {
-                if (!response.ok) {
-                    if (response.status === 401) window.location.href = '/login.html';
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(course => {
-                document.getElementById('modalTitle').textContent = '编辑课程';
-                document.getElementById('courseId').value = course.id;
-
-                // 设置课程信息
-                document.getElementById('courseCode').value = course.code;
-                document.getElementById('courseName').value = course.name;
-                document.getElementById('credit').value = course.credit;
-                document.getElementById('description').value = course.description || '';
-
-                // 加载课程代码并选择对应的课程代码
-                loadCourseCodes().then(() => {
-                    const select = document.getElementById('courseCodeSelect');
-                    for (let i = 0; i < select.options.length; i++) {
-                        if (select.options[i].value === course.code) {
-                            select.selectedIndex = i;
-                            break;
-                        }
-                    }
-                });
-
-                new bootstrap.Modal(document.getElementById('courseModal')).show();
-            })
-            .catch(error => console.error('获取课程信息失败:', error));
     }
 
     // 删除课程
@@ -550,7 +365,7 @@
                     }
                 })
                 .then(data => {
-                    alert(data.message || '课程删除成功');
+                    showToast('课程删除成功');
                     loadCourses(); // 重新加载课程列表
                 })
                 .catch(error => {
@@ -560,17 +375,19 @@
         }
     }
 
-    // 保存课程信息
+    // 保存课程信息到数据库
     function saveCourse() {
         const courseId = document.getElementById('courseId').value;
-        const code = document.getElementById('courseCode').value;
-        const name = document.getElementById('courseName').value;
+        const code = document.getElementById('courseCode').value.trim();
+        const name = document.getElementById('courseName').value.trim();
         const credit = parseFloat(document.getElementById('credit').value) || 0;
-        const description = document.getElementById('description').value;
+        const type = document.getElementById('courseType').value;
+        const hours = parseInt(document.getElementById('courseHours').value) || 0;
+        const description = document.getElementById('description').value.trim();
 
         // 验证必填字段
         if (!code) {
-            alert('请选择课程代码');
+            alert('请输入课程代码');
             return;
         }
         if (!name) {
@@ -582,16 +399,21 @@
             return;
         }
 
+        // 准备课程数据
         const courseData = {
             code: code,
             name: name,
             credit: credit,
+            type: type,
+            hours: hours,
             description: description
         };
 
+        // 确定是添加还是编辑
         const method = courseId ? 'PUT' : 'POST';
         const url = courseId ? `/api/admin/course-management/${courseId}` : '/api/admin/course-management';
 
+        // 发送请求到后端API
         fetch(url, {
             method: method,
             headers: {
@@ -609,7 +431,7 @@
                 return response.json();
             })
             .then(data => {
-                alert('课程信息保存成功');
+                showToast('课程信息已保存到数据库');
                 bootstrap.Modal.getInstance(document.getElementById('courseModal')).hide();
                 loadCourses(); // 重新加载课程列表
             })
@@ -619,7 +441,20 @@
             });
     }
 
-    // --- 合并后的 window.onload ---
+    // 显示操作成功提示
+    function showToast(message) {
+        const toastEl = document.getElementById('successToast');
+        const toastBody = toastEl.querySelector('.toast-body');
+
+        if (message) {
+            toastBody.innerHTML = `<i class="fas fa-check-circle me-2"></i> ${message}`;
+        }
+
+        const toast = new bootstrap.Toast(toastEl);
+        toast.show();
+    }
+
+    // 页面加载完成后初始化
     window.onload = function() {
         const credentials = localStorage.getItem('credentials');
         if (!credentials) {
@@ -675,9 +510,9 @@
     };
 
     // 回车搜索
-    document.getElementById('courseCodeSearch').addEventListener('keypress', function(e) {
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
-            searchCourseCodes();
+            searchCourses();
         }
     });
 </script>
