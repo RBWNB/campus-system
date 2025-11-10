@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>课程表 - 学工管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="/css/style.css" rel="stylesheet">
+
+    <style>
+        /* 核心样式：控制表格单元格和课程方块的尺寸 */
+        .schedule-table th, .schedule-table td {
+            text-align: center;
+            vertical-align: middle;
+            /* 修正 A: 减小单元格内边距，使内容更紧凑 */
+            padding: 0.3rem;
+            /* 修正 B: 确保表格列宽平均分配 */
+            width: calc(100% / 8);
+        }
+
+        /* 修正 C: 为每行设置一个最小高度，以稳定表格布局，避免内容撑大 */
+        .schedule-table tbody tr {
+            min-height: 50px; /* 确保每行（每节课时间）有一个稳定基础高度 */
+            height: 50px; /* 尝试固定行高 */
+        }
+
+        .schedule-item {
+            background-color: #e9f7fe;
+            border-left: 4px solid #3498db;
+            /* 修正 D: 极度减小课程方块的内边距和外边距，使其尽量小巧 */
+            padding: 2px;
+            margin: 1px 0;
+            border-radius: 4px;
+            text-align: left;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+
+            /* 修正 E: 关键！设置课程卡片的最大高度，并隐藏溢出内容，确保不撑大单元格 */
+            max-height: 98%; /* 稍微小于单元格高度，以适应 padding */
+            overflow: hidden; /* 隐藏超出部分 */
+        }
+
+        .schedule-item:hover {
+            transform: none; /* 移除悬停效果，以防内容跳动 */
+            box-shadow: none;
+        }
+
+        /* 调整字体大小以适应小巧的方块 */
+        .schedule-item .fw-bold {
+            font-size: 0.8rem;
+        }
+        .schedule-item .small {
+            font-size: 0.7rem;
+        }
+
+
+        /* 确保课程信息在小屏幕上也能良好显示 */
+        @media (max-width: 767px) {
+            .schedule-table td {
+                padding: 0.2rem;
+            }
+            .schedule-item {
+                padding: 1px;
+            }
+            .schedule-item .fw-bold {
+                font-size: 0.65rem;
+            }
+            .schedule-item .small {
+                font-size: 0.55rem;
+                /* 隐藏次要信息以节省空间 */
+                display: none;
+            }
+            /* 在小屏幕上只显示课程名称 */
+            .schedule-item .fw-bold {
+                display: block;
+            }
+        }
+
+        /* 其他辅助样式保持不变 */
+        .time-slot {
+            font-weight: bold;
+            color: #2c3e50;
+            white-space: nowrap;
+        }
+
+        .empty-course {
+            color: #95a5a6;
+            font-style: italic;
+        }
+
+        .loading-state {
+            color: #6c757d;
+        }
+
+        /* 模拟数据提示样式 */
+        .mock-data-hint {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.8rem;
+            border: 1px solid #ffeeba;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">
+                <i class="fas fa-graduation-cap me-2"></i>学工管理系统
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/student/index.html">
+                            <i class="fas fa-home me-1"></i>首页
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/student/profile.html">
+                            <i class="fas fa-user me-1"></i>个人信息
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/student/grades.html">
+                            <i class="fas fa-chart-bar me-1"></i>成绩查询
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/student/schedule.html">
+                            <i class="fas fa-calendar-alt me-1"></i>我的课表
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/student/courses.html">
+                            <i class="fas fa-book me-1"></i>课程查询
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/student/leaves.html">
+                            <i class="fas fa-calendar-minus me-1"></i>请假申请
+                        </a>
+                    </li>
+                </ul>
+                <div class="navbar-nav">
+                    <a class="nav-link text-white" href="/announcements.html">
+                        <i class="fas fa-bullhorn me-1"></i>公告查看
+                    </a>
+                    <a class="nav-link text-white" href="#" onclick="logout()">
+                        <i class="fas fa-sign-out-alt me-1"></i>登出账号
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="p-4 bg-gradient-success text-white rounded-3 shadow-sm">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <h1 class="display-6 fw-bold mb-2">我的课程表</h1>
+                            <p class="mb-0">查看您的课程安排时间表</p>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-calendar-alt fa-3x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</header>
+<div class="container mb-5">
+    <div class="row mb-3 align-items-end">
+        <div class="col-md-3">
+            <div class="input-group">
+                <span class="input-group-text">学年筛选</span>
+                <select id="termSelect" class="form-select">
+                    <option value="大一">大一</option>
+                    <option value="大二">大二</option>
+                    <option value="大三">大三</option>
+                    <option value="大四">大四</option>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-9 text-end">
+            <span id="currentDate" class="badge bg-secondary me-2"></span>
+            <span id="currentTerm" class="badge bg-primary"></span>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-bordered schedule-table">
+            <thead>
+            <tr>
+                <th>时间/星期</th>
+                <th>周一</th>
+                <th>周二</th>
+                <th>周三</th>
+                <th>周四</th>
+                <th>周五</th>
+                <th>周六</th>
+                <th>周日</th>
+            </tr>
+            </thead>
+            <tbody id="scheduleBody">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="courseDetailModal" tabindex="-1" aria-labelledby="courseDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="courseDetailModalLabel">课程详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="courseDetailBody">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // 获取存储的凭据
+    function getCredentials() {
+        return localStorage.getItem('credentials') || '';
+    }
+
+    function logout() {
+        // 1. 移除本地存储的凭据
+        localStorage.removeItem('credentials');
+
+        // 2. 发送 POST 请求到 Spring Security 的 logout URL
+        //    Spring Security 会处理此 URL 的退出逻辑
+        fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: {
+                // 对于 Basic Auth，我们不需要发送 Authorization 头，因为我们已经删除了凭据。
+                // Spring Security 的 LogoutFilter 会处理这个 POST 请求。
+                'Content-Type': 'application/json' // POST 请求通常需要 Content-Type
+            }
+        })
+            .then(response => {
+                // 无论后端响应是 200 OK 还是 401 Unauthorized，都认为是成功退出了（或因认证丢失而跳转）
+                // 最终目的都是跳转到登录页
+                if (response.ok || response.status === 401) {
+                    console.log("Logout successful or session expired. Redirecting to login page.");
+                    window.location.href = '/login.html';
+                } else {
+                    // 发生其他非预期的错误
+                    console.error('Logout failed with status:', response.status);
+                    window.location.href = '/login.html'; // 无论如何都跳转到登录页
+                }
+            })
+            .catch(error => {
+                // 请求本身失败（网络错误等）
+                console.error('Error during logout fetch:', error);
+                window.location.href = '/login.html'; // 跳转到登录页
+            });
+    }
+
+    // 定义每天的节次时间，以便于渲染表格
+    const timeSlots = [
+        { start: '08:00', end: '08:45', name: '第1节' },
+        { start: '08:50', end: '09:35', name: '第2节' },
+        { start: '09:50', end: '10:35', name: '第3节' },
+        { start: '10:40', end: '11:25', name: '第4节' },
+        { start: '11:30', end: '12:15', name: '第5节' },
+        { start: '13:30', end: '14:15', name: '第6节' },
+        { start: '14:20', end: '15:05', name: '第7节' },
+        { start: '15:20', end: '16:05', name: '第8节' },
+        { start: '16:10', end: '16:55', name: '第9节' },
+        { start: '17:10', end: '17:55', name: '第10节' },
+        { start: '18:30', end: '19:15', name: '第11节' },
+        { start: '19:20', end: '20:05', name: '第12节' }
+    ];
+
+    /**
+     * 初始化课表表格结构（左侧时间列）
+     */
+    function initializeTable() {
+        const tbody = document.getElementById('scheduleBody');
+        tbody.innerHTML = ''; // 清空现有内容
+
+        timeSlots.forEach((slot, index) => {
+            const row = tbody.insertRow();
+            row.id = `time-slot-${index + 1}`;
+
+            // 第一列：时间/节次
+            const timeCell = row.insertCell();
+            timeCell.innerHTML = `
+                    <div class="fw-bold">${slot.name}</div>
+                    <div class="small text-muted">${slot.start} - ${slot.end}</div>
+                `;
+
+            // 插入周一到周日的单元格 (索引 1 到 7)
+            for (let i = 1; i <= 7; i++) {
+                const classCell = row.insertCell();
+                classCell.id = `cell-${i}-${index + 1}`; // e.g., cell-1-1 (周一第1节)
+            }
+        });
+    }
+
+    /**
+     * 将后端返回的课程数据渲染到表格中
+     * @param {Array<Object>} schedules - 后端返回的 Schedule 实体列表
+     */
+    function fillScheduleTable(schedules) {
+        // 1. 清空所有课程单元格内容 (保留时间列)
+        for (let i = 1; i <= 7; i++) {
+            for (let j = 1; j <= timeSlots.length; j++) {
+                const cell = document.getElementById(`cell-${i}-${j}`);
+                if (cell) {
+                    cell.innerHTML = '';
+                    cell.rowSpan = 1; // 重置 rowspan
+                    cell.style.display = ''; // 确保单元格可见
+                }
+            }
+        }
+
+        const occupiedCells = new Set();
+
+        schedules.forEach(scheduleItem => {
+            const weekday = scheduleItem.weekday; // 1=周一, 2=周二...
+            const startTime = scheduleItem.startTime; // HH:mm:ss 格式
+            const endTime = scheduleItem.endTime;   // HH:mm:ss 格式
+
+            // 找到课程开始和结束对应的节次索引
+            const startIndex = timeSlots.findIndex(slot => startTime.startsWith(slot.start));
+            const endIndex = timeSlots.findIndex(slot => endTime.startsWith(slot.end)); // 假设时间是准确匹配的
+
+            if (startIndex !== -1 && endIndex !== -1 && weekday >= 1 && weekday <= 7) {
+                const startSlot = startIndex + 1; // 节次从 1 开始
+                const endSlot = endIndex + 1;
+                const duration = endSlot - startSlot + 1;
+
+                const cellId = `${weekday}-${startSlot}`;
+                if (occupiedCells.has(cellId)) {
+                    return;
+                }
+
+                const startCell = document.getElementById(`cell-${weekday}-${startSlot}`);
+                if (startCell) {
+                    startCell.rowSpan = duration;
+
+                    renderCourseCard(startCell, [scheduleItem]);
+
+                    // 标记并隐藏被合并的单元格
+                    for (let j = 1; j < duration; j++) {
+                        const hiddenCellId = `cell-${weekday}-${startSlot + j}`;
+                        const hiddenCell = document.getElementById(hiddenCellId);
+                        if (hiddenCell) {
+                            hiddenCell.style.display = 'none';
+                            occupiedCells.add(`${weekday}-${startSlot + j}`);
+                        }
+                    }
+                    occupiedCells.add(cellId);
+                }
+            }
+        });
+    }
+
+    /**
+     * 在指定单元格内渲染课程卡片
+     * @param {HTMLElement} cell - 目标表格单元格
+     * @param {Array<Object>} courses - 课程列表 (这里只有一个 item)
+     */
+    function renderCourseCard(cell, courses) {
+        courses.forEach(course => {
+            const courseDiv = document.createElement('div');
+            courseDiv.className = 'schedule-item mb-1';
+
+            // 修正点 2：修复教师名字段的访问方式。
+            // course.teacher 在后端是 String 类型的用户名
+            courseDiv.innerHTML = `
+                    <div class="fw-bold text-truncate">${course.course?.name || '未知课程'}</div>
+                    <div class="small text-truncate">教师：${course.teacher || '未知教师'}</div>
+                    <div class="small text-truncate">教室：${course.classroom?.name || '待定'}</div>
+                `;
+            cell.appendChild(courseDiv);
+
+            // 添加点击事件，显示课程详情
+            courseDiv.addEventListener('click', () => showCourseDetail(course));
+        });
+    }
+
+    /**
+     * 显示课程详情 Modal
+     */
+    function showCourseDetail(course) {
+        const detailBody = document.getElementById('courseDetailBody');
+
+        const formattedStartTime = course.startTime.substring(0, 5);
+        const formattedEndTime = course.endTime.substring(0, 5);
+
+        detailBody.innerHTML = `
+                <p><strong>课程名称：</strong>${course.course?.name || '未知'}</p>
+                <p><strong>课程代码：</strong>${course.course?.code || '无'}</p>
+                <p><strong>上课时间：</strong>星期${course.weekday} ${formattedStartTime} - ${formattedEndTime}</p>
+                <p><strong>上课教室：</strong>${course.classroom?.name || '待定'}</p>
+                <p><strong>授课教师：</strong>${course.teacher || '未知'}</p>
+                <p><strong>所属学年：</strong>${course.term || '未指定'}</p>
+                <p><strong>课程学分：</strong>${course.course?.credit || '0'} 分</p>
+                <hr>
+                <p><strong>教师账号：</strong>${course.teacherUser?.username || '无'}</p>
+            `;
+
+        const modal = new bootstrap.Modal(document.getElementById('courseDetailModal'));
+        modal.show();
+    }
+
+
+    /**
+     * 获取当前登录学生的课程表数据
+     */
+    function loadSchedule() {
+        // 由于移除了“全部学年”选项，第一个选项（大一）将作为默认值被选中
+        const selectedTermId = document.getElementById('termSelect').value;
+
+        fetch('/api/student/schedule?termId=' + selectedTermId)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP 错误！状态码: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(schedules => {
+                initializeTable();
+                fillScheduleTable(schedules);
+
+                // 即使没有“全部学年”选项，这里也能正确显示当前的学年
+                document.getElementById('currentTerm').textContent = `当前学年: ${selectedTermId}`;
+            })
+            .catch(error => {
+                console.error('加载课程表失败:', error);
+                alert('加载课程表失败，请检查登录状态和后端服务是否运行正常。\n错误信息: ' + error.message);
+                initializeTable();
+            });
+    }
+
+    // 页面加载完成后执行的初始化操作
+    window.onload = function() {
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('zh-CN');
+
+        // 绑定学年筛选下拉框的 change 事件
+        document.getElementById('termSelect').addEventListener('change', loadSchedule);
+
+        // 首次加载课程表
+        loadSchedule();
+    };
+</script>
+</body>
+</html>

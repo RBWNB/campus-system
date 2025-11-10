@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>公告栏</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        /* 启用平滑滚动效果 */
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            background-color: #f8f9fa;
+        }
+        /* 绘制时间线竖线 */
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 20px;
+            width: 3px;
+            background-color: #dee2e6;
+        }
+        .timeline-item {
+            margin-bottom: 30px;
+            position: relative;
+        }
+        /* 修复：给要跳转的元素添加 padding，避免粘性头部遮挡 */
+        .timeline-item[id] {
+            padding-top: 10px;
+            margin-top: -10px;
+        }
+        .timeline-badge {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: 10;
+            border: 3px solid #f8f9fa;
+        }
+        .timeline-panel {
+            margin-left: 60px;
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            background: white;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        /* 置顶公告样式 */
+        .timeline-item.pinned .timeline-panel {
+            border-left: 5px solid #ffc107;
+        }
+
+        /* 左侧索引样式 */
+        .sticky-top {
+            top: 20px;
+        }
+        .index-title {
+            padding: 0.5rem 1rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container mt-4">
+    <div class="row">
+
+        <div class="col-12 col-lg-3 order-lg-1">
+            <div class="sticky-top" style="top: 20px;">
+                <p class="text-start mb-4">
+                    <a id="backButton" href="#" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> 返回上一页
+                    </a>
+                </p>
+
+                <h3 class="d-none d-lg-block mb-3">历史存档</h3>
+                <div id="timeline-index" class="list-group shadow-sm mb-4">
+                    <a href="#" class="list-group-item list-group-item-action disabled">正在加载...</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-9 order-lg-2">
+
+            <h1 class="mb-5 text-center text-lg-start">公告栏</h1>
+
+            <div class="timeline" id="timeline-container">
+                <div class="text-center text-muted p-5" id="loading-status">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">正在加载公告...</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // ** 核心逻辑：获取并存储原始来源URL，并实现智能回退 **
+
+    // 1. 定义所有可能的首页路径
+    const homePaths = {
+        'admin': '/admin/index.html',
+        'teacher': '/teacher/index.html',
+        'student': '/student/index.html'
+    };
+
+    let referrerUrl = document.referrer;
+    const currentUrl = window.location.href;
+
+    // 2. 如果 referrer 不可用，或者 referrer 指向当前页面（例如刷新、直接输入），则尝试通过当前 URL 路径猜测角色
+    if (!referrerUrl || referrerUrl.includes(currentUrl)) {
+        let determinedFallback = null;
+
+        // 检查当前 URL 中是否包含角色标识符
+        if (currentUrl.includes('/admin/')) {
+            determinedFallback = homePaths.admin;
+        } else if (currentUrl.includes('/teacher/')) {
+            determinedFallback = homePaths.teacher;
+        } else if (currentUrl.includes('/student/')) {
+            determinedFallback = homePaths.student;
+        }
+
+        // 3. 设置最终的 fallback URL
+        // 如果无法从路径中推测角色，默认回退到管理员首页（可根据实际情况修改）
+        referrerUrl = determinedFallback || '/admin/index.html';
+    }
+    // ------------------------------------
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // 1. 设置返回按钮的链接
+        const backButton = document.getElementById('backButton');
+        if (backButton) {
+            backButton.href = referrerUrl;
+        }
+
+        // 2. 加载公告
+        loadAnnouncements();
+    });
+
+    /**
+     * 辅助函数：格式化时间戳
+     */
+    function formatTimestamp(timestamp, type = 'full') {
+        if (!timestamp) return 'N/A';
+
+        let dateInput = timestamp;
+        // 确保如果是毫秒数能被正确解析
+        if (typeof timestamp === 'string' && /^\d{13,}$/.test(timestamp)) {
+            dateInput = parseInt(timestamp, 10);
+        }
+
+        const date = new Date(dateInput);
+
+        // 返回年份-月份，如 '2024-01'
+        if (type === 'year-month') {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            return `${year}-${month}`;
+        }
+
+        // 返回月份中的第几天 (如: 15)
+        if (type === 'day') {
+            return date.getDate();
+        }
+
+        // 格式化为本地日期字符串 (包含时分秒)
+        return date.toLocaleDateString('zh-CN', {
+            year: 'numeric', month: 'long', day: 'numeric',
+            hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+        });
+    }
+
+    /**
+     * 1. 加载并显示所有公告到时间线
+     *    假设公告 API (/api/announcements) 不需要认证。
+     */
+    async function loadAnnouncements() {
+        const container = document.getElementById('timeline-container');
+        const indexContainer = document.getElementById('timeline-index');
+
+        try {
+            // *** 移除 Authorization header，假设 API 不需要认证 ***
+            const response = await fetch('/api/announcements'); // 移除了 headers 部分
+
+            if (!response.ok) {
+                // 根据 response.status 提供更具体的错误信息
+                let errorMessage = '获取公告失败';
+                if (response.status === 401 || response.status === 403) {
+                    errorMessage = '您没有权限查看公告，请先登录。';
+                } else if (response.status === 404) {
+                    errorMessage = '公告API未找到 (/api/announcements)。';
+                } else {
+                    errorMessage = `API请求失败，状态码：${response.status}`;
+                }
+                throw new Error(errorMessage);
+            }
+
+            const data = await response.json();
+
+            // 1. 排序：先按置顶，后按时间倒序
+            const sortedData = data.sort((a, b) => {
+                if (b.pinned !== a.pinned) {
+                    return b.pinned - a.pinned;
+                }
+                const dateA = new Date(a.publishedAt || 0);
+                const dateB = new Date(b.publishedAt || 0);
+                return dateB - dateA;
+            });
+
+            container.innerHTML = ''; // 清空加载中的提示
+            indexContainer.innerHTML = ''; // 清空索引加载中的提示
+
+            if (sortedData.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted p-5">暂无公告</div>';
+                indexContainer.innerHTML = '<a href="#" class="list-group-item list-group-item-action disabled">无公告</a>';
+                return;
+            }
+
+            // 2. 动态生成时间线和索引
+            let lastYearMonth = '';
+            let currentYear = '';
+
+            sortedData.forEach(ann => {
+                const isPinned = ann.pinned;
+                const yearMonth = formatTimestamp(ann.publishedAt, 'year-month');
+                const dateDay = formatTimestamp(ann.publishedAt, 'day');
+                const fullDate = formatTimestamp(ann.publishedAt, 'full');
+                const dateYear = yearMonth.substring(0, 4);
+
+                const isNewMonth = yearMonth !== lastYearMonth;
+
+                // --- 2b. 生成时间线项 ---
+                const itemDiv = document.createElement('div');
+                itemDiv.classList.add('timeline-item');
+
+                if (isPinned) {
+                    itemDiv.classList.add('pinned');
+                }
+
+                // 只有是新月份的第一条公告才添加ID，用于索引跳转
+                if (isNewMonth) {
+                    itemDiv.id = `archive-${yearMonth}`;
+                }
+
+                // 根据是否置顶设置 badge 样式和内容
+                let badgeClass = 'bg-secondary';
+                let badgeContent = dateDay;
+
+                if (isPinned) {
+                    badgeClass = 'bg-warning';
+                    badgeContent = '<i class="bi bi-pin-angle-fill"></i>';
+                }
+
+                itemDiv.innerHTML = `
+                    <div class="timeline-badge ${badgeClass}">
+                        ${badgeContent}
+                    </div>
+                    <div class="timeline-panel">
+                        <div class="timeline-heading">
+                            <h4 class="timeline-title">${ann.title}</h4>
+                            <p><small class="text-muted">${fullDate}</small></p>
+                        </div>
+                        <div class="timeline-body">
+                            <p style="white-space: pre-wrap;">${ann.content}</p>
+                            <small class="text-muted">发布者：${ann.author}</small>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(itemDiv);
+
+                // --- 2a. 生成索引链接 (只有在新月份时添加) ---
+                if (isNewMonth) {
+                    // 如果年份变化，添加年份标题
+                    if (dateYear !== currentYear) {
+                        const yearTitle = document.createElement('div');
+                        yearTitle.className = 'index-title bg-light';
+                        yearTitle.innerText = dateYear + ' 年';
+                        indexContainer.appendChild(yearTitle);
+                        currentYear = dateYear;
+                    }
+
+                    // 添加月份链接，链接指向 itemDiv.id
+                    const monthLink = document.createElement('a');
+                    monthLink.href = `#archive-${yearMonth}`;
+                    monthLink.className = 'list-group-item list-group-item-action';
+                    monthLink.innerText = `${yearMonth.substring(5)} 月`;
+                    indexContainer.appendChild(monthLink);
+
+                    // 更新上一个处理的月份
+                    lastYearMonth = yearMonth;
+                }
+            });
+
+        } catch (error) {
+            console.error('加载公告失败:', error);
+            // 使用从 error.message 获取的更具体信息
+            container.innerHTML = `<div class="text-center text-danger p-5">加载公告失败：${error.message}</div>`;
+            indexContainer.innerHTML = '<a href="#" class="list-group-item list-group-item-action disabled text-danger">加载失败</a>';
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!-- src/main/resources/static/student/grades.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>成绩查询 - 学工管理系统</title>
+    <!-- 引入 Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 引入 Font Awesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 引入我们统一的 style.css -->
+    <link href="/css/style.css" rel="stylesheet">
+    <!-- Optional: Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        /* 移除原有的内联样式，完全依赖 style.css 和 Bootstrap */
+    </style>
+</head>
+<body>
+<!-- 统一的导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="#">
+            <i class="fas fa-graduation-cap me-2"></i>学工管理系统
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/student/index.html">
+                        <i class="fas fa-home me-1"></i>首页
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/student/profile.html">
+                        <i class="fas fa-user me-1"></i>个人信息
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="/student/grades.html">
+                        <i class="fas fa-chart-bar me-1"></i>成绩查询
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/student/schedule.html">
+                        <i class="fas fa-calendar-alt me-1"></i>我的课表
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/student/courses.html">
+                        <i class="fas fa-book me-1"></i>课程查询
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/student/leaves.html">
+                        <i class="fas fa-calendar-minus me-1"></i>请假申请
+                    </a>
+                </li>
+            </ul>
+            <div class="navbar-nav">
+                <a class="nav-link text-white" href="/announcements.html">
+                    <i class="fas fa-bullhorn me-1"></i>公告查看
+                </a>
+                <a class="nav-link text-white" href="#" onclick="logout()">
+                    <i class="fas fa-sign-out-alt me-1"></i>登出账号
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container my-4">
+    <!-- 页面标题区域，模仿首页的欢迎横幅 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="p-4 bg-gradient-success text-white rounded-3 shadow-sm">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h1 class="display-6 fw-bold mb-2">成绩查询</h1>
+                        <p class="mb-0">查看您的学习成果详情</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-award fa-3x opacity-75"></i> <!-- 使用style.css中的opacity-75 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 内容区域 -->
+    <div class="row">
+        <div class="col-12">
+            <!-- 成绩列表表格，使用card包裹 -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light py-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list-alt text-success me-2"></i>我的成绩单
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- 使用Bootstrap的table类，并添加hover和align-middle -->
+                    <div class="table-responsive">
+                        <table id="gradesTable" class="table table-hover align-middle">
+                            <thead>
+                            <tr>
+                                <th>课程代码</th>
+                                <th>课程名称</th>
+                                <th>学分</th>
+                                <th>成绩</th>
+                                <th>成绩类型</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- 成绩数据将通过JavaScript动态填充 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 获取存储的凭据
+    function getCredentials() {
+        return localStorage.getItem('credentials') || '';
+    }
+
+    // 退出函数
+    function logout() {
+        // 1. 移除本地存储的凭据
+        localStorage.removeItem('credentials');
+
+        // 2. 发送 POST 请求到 Spring Security 的 logout URL
+        //    Spring Security 会处理此 URL 的退出逻辑
+        fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: {
+                // 对于 Basic Auth，我们不需要发送 Authorization 头，因为我们已经删除了凭据。
+                // Spring Security 的 LogoutFilter 会处理这个 POST 请求。
+                'Content-Type': 'application/json' // POST 请求通常需要 Content-Type
+            }
+        })
+            .then(response => {
+                // 无论后端响应是 200 OK 还是 401 Unauthorized，都认为是成功退出了（或因认证丢失而跳转）
+                // 最终目的都是跳转到登录页
+                if (response.ok || response.status === 401) {
+                    console.log("Logout successful or session expired. Redirecting to login page.");
+                    window.location.href = '/login.html';
+                } else {
+                    // 发生其他非预期的错误
+                    console.error('Logout failed with status:', response.status);
+                    window.location.href = '/login.html'; // 无论如何都跳转到登录页
+                }
+            })
+            .catch(error => {
+                // 请求本身失败（网络错误等）
+                console.error('Error during logout fetch:', error);
+                window.location.href = '/login.html'; // 跳转到登录页
+            });
+    }
+
+    // 加载成绩信息
+    function loadGrades() {
+        fetch('/api/student/grades', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(getCredentials())
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) { // 未登录或token过期
+                        window.location.href = '/login.html';
+                    }
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const tbody = document.querySelector('#gradesTable tbody');
+                tbody.innerHTML = '';
+
+                if (data && data.length > 0) {
+                    data.forEach(grade => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${grade.course.code || ''}</td>
+                            <td>${grade.course.name || ''}</td>
+                            <td>${grade.course.credit || ''}</td>
+                            <td>${grade.score || ''}</td>
+                            <td>${grade.gradeType || ''}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                } else {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="5" class="text-center">暂无成绩记录</td>';
+                    tbody.appendChild(row);
+                }
+            })
+            .catch(error => {
+                console.error('获取成绩信息失败:', error);
+                const tbody = document.querySelector('#gradesTable tbody');
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">加载成绩信息失败，请稍后重试。</td></tr>';
+            });
+    }
+
+    // --- 合并后的 window.onload ---
+    window.onload = function() {
+        const credentials = localStorage.getItem('credentials');
+        if (!credentials) {
+            window.location.href = '/login.html';
+            return;
+        }
+
+        // 获取当前用户信息
+        fetch('/api/auth/me', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(credentials)
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/login.html';
+                    }
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const role = data.role[0].authority;
+
+                const currentPath = window.location.pathname;
+
+                // 学生权限校验
+                if (role === 'STUDENT') {
+                    const allowedPaths = ['/student/', '/announcements.html', '/index.html'];
+                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
+                        window.location.href = '/student/index.html';
+                    }
+                }
+                // 教师权限校验
+                if (role === 'TEACHER') {
+                    const allowedPaths = ['/teacher/', '/announcements.html', '/index.html'];
+                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
+                        window.location.href = '/teacher/index.html';
+                    }
+                }
+                // 管理员不做限制
+                if (role === 'ADMIN') {}
+
+                // 权限校验通过后，加载页面核心数据
+                loadGrades();
+            })
+            .catch(error => {
+                console.error('获取用户信息失败:', error);
+                window.location.href = '/login.html';
+            });
+    };
+</script>
+<!-- 引入 Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

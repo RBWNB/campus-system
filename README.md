@@ -7,18 +7,20 @@
 
 ## 环境配置
 1. 克隆项目到本地
-2. 检查 `application.yml` 中的 MySQL 账号密码配置，确保与你的本地环境一致
-3. 创建名为 `campus_system` 的数据库（必须执行）
+2. 第一次运行的时候一定要配置如下两条：
+3. 检查 `application.yml` 中的 MySQL 账号密码配置，确保与你的本地环境一致
+4. 创建名为 `campus_system` 的数据库（必须执行）
+   
 
 ## 启动说明
 正常启动后访问：http://localhost:8080/login.html
 
 ## 默认账号
-系统提供两个默认测试账号：
+系统提供三个默认测试账号：
 
 | 角色 | 用户名 | 密码 |
-|------|--------|------|
 | 管理员 | admin | admin123 |
+| 教师 | teacher | teacher123 |
 | 学生 | student | student123 |
 
 ## 注意事项

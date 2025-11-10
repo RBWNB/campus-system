@@ -1,0 +1,387 @@
+<!-- src/main/resources/static/student/schedule.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>课程表 - 学工管理系统</title>
+    <!-- 引入 Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 引入 Font Awesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 引入统一的 style.css -->
+    <link href="/css/style.css" rel="stylesheet">
+    <style>
+        .schedule-table th, .schedule-table td {
+            text-align: center;
+            vertical-align: middle;
+            min-height: 80px;
+        }
+
+        .schedule-item {
+            background-color: #e9f7fe;
+            border-left: 4px solid #3498db;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+
+        .time-slot {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .empty-course {
+            color: #95a5a6;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+<!-- 统一的导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-info shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="#">
+            <i class="fas fa-graduation-cap me-2"></i>学工管理系统
+        </a >
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/teacher/index.html">
+                        <i class="fas fa-home me-1"></i>首页
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/teacher/schedule.html">
+                        <i class="fas fa-calendar-alt me-1"></i>课程安排
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/teacher/grades.html">
+                        <i class="fas fa-chart-bar me-1"></i>成绩管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/teacher/students.html">
+                        <i class="fas fa-users me-1"></i>学生名单
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/teacher/leaves.html">
+                        <i class="fas fa-calendar-minus me-1"></i>批假管理
+                    </a>
+                </li>
+            </ul>
+            <div class="navbar-nav">
+                <a class="nav-link text-white" href="/announcements.html">
+                    <i class="fas fa-bullhorn me-1"></i>公告查看
+                </a >
+                <a class="nav-link text-white" href="#" onclick="logout()">
+                    <i class="fas fa-sign-out-alt me-1"></i>登出账号
+                </a >
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container my-4">
+    <!-- 页面标题区域，模仿首页的欢迎横幅 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="p-4 bg-gradient-info text-white rounded-3 shadow-sm">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h1 class="display-6 fw-bold mb-2">我的课程表</h1>
+                        <p class="mb-0">查看您的课程安排时间表</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-calendar-alt fa-3x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 内容区域 -->
+    <div class="row">
+        <div class="col-12">
+            <!-- 课程表，使用card包裹 -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-table text-success me-2"></i>课程时间表
+                    </h5>
+                    <div>
+                        <button class="btn btn-outline-success me-2" onclick="loadSchedule()">
+                            <i class="fas fa-sync-alt me-1"></i>刷新
+                        </button>
+                        <select class="form-select d-inline-block" id="termSelect" style="width: auto;" onchange="loadSchedule()">
+                            <option value="">当前学期</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered schedule-table">
+                            <thead class="table-success">
+                            <tr>
+                                <th width="10%">时间</th>
+                                <th width="12%">周一</th>
+                                <th width="12%">周二</th>
+                                <th width="12%">周三</th>
+                                <th width="12%">周四</th>
+                                <th width="12%">周五</th>
+                                <th width="12%">周六</th>
+                                <th width="12%">周日</th>
+                            </tr>
+                            </thead>
+                            <tbody id="scheduleTableBody">
+                            <!-- 课程表数据将通过JavaScript动态填充 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 获取存储的凭据
+    function getCredentials() {
+        return localStorage.getItem('credentials') || '';
+    }
+
+    // 退出函数
+    function logout() {
+        // 1. 移除本地存储的凭据
+        localStorage.removeItem('credentials');
+
+        // 2. 发送 POST 请求到 Spring Security 的 logout URL
+        //    Spring Security 会处理此 URL 的退出逻辑
+        fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: {
+                // 对于 Basic Auth，我们不需要发送 Authorization 头，因为我们已经删除了凭据。
+                // Spring Security 的 LogoutFilter 会处理这个 POST 请求。
+                'Content-Type': 'application/json' // POST 请求通常需要 Content-Type
+            }
+        })
+            .then(response => {
+                // 无论后端响应是 200 OK 还是 401 Unauthorized，都认为是成功退出了（或因认证丢失而跳转）
+                // 最终目的都是跳转到登录页
+                if (response.ok || response.status === 401) {
+                    console.log("Logout successful or session expired. Redirecting to login page.");
+                    window.location.href = '/login.html';
+                } else {
+                    // 发生其他非预期的错误
+                    console.error('Logout failed with status:', response.status);
+                    window.location.href = '/login.html'; // 无论如何都跳转到登录页
+                }
+            })
+            .catch(error => {
+                // 请求本身失败（网络错误等）
+                console.error('Error during logout fetch:', error);
+                window.location.href = '/login.html'; // 跳转到登录页
+            });
+    }
+
+    // 页面加载时获取课表信息
+    window.onload = function() {
+        const credentials = localStorage.getItem('credentials');
+        if (!credentials) {
+            window.location.href = '/login.html';
+            return;
+        }
+
+        // 获取当前用户信息
+        fetch('/api/auth/me', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(credentials)
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/login.html';
+                    }
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const role = data.role[0].authority;
+                const currentPath = window.location.pathname;
+
+                // 学生权限校验
+                if (role === 'STUDENT') {
+                    const allowedPaths = ['/student/', '/announcements.html', '/index.html'];
+                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
+                        window.location.href = '/student/index.html';
+                    }
+                }
+                // 教师权限校验
+                if (role === 'TEACHER') {
+                    const allowedPaths = ['/teacher/', '/announcements.html', '/index.html'];
+                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
+                        window.location.href = '/teacher/index.html';
+                    }
+                }
+                // 管理员不做限制
+                if (role === 'ADMIN') {}
+
+                // 权限校验通过后，加载页面核心数据
+                loadTerms();
+                loadSchedule();
+            })
+            .catch(error => {
+                console.error('获取用户信息失败:', error);
+                window.location.href = '/login.html';
+            });
+    };
+
+    // 加载学期信息 - 固定选项
+    function loadTerms() {
+        const terms = [
+            { id: 1, name: "大一上" },
+            { id: 2, name: "大一下" },
+            { id: 3, name: "大二上" },
+            { id: 4, name: "大二下" },
+            { id: 5, name: "大三上" },
+            { id: 6, name: "大三下" },
+            { id: 7, name: "大四上" },
+            { id: 8, name: "大四下" }
+        ];
+
+        const termSelect = document.getElementById('termSelect');
+        termSelect.innerHTML = '<option value="">当前学期</option>';
+
+        terms.forEach(term => {
+            const option = document.createElement('option');
+            option.value = term.id;
+            option.textContent = term.name;
+            termSelect.appendChild(option);
+        });
+    }
+
+
+    // 加载课表信息 - 修正为教师接口
+    function loadSchedule() {
+        const termId = document.getElementById('termSelect').value;
+        // 教师端接口改为 /api/teacher/schedule，与学生端区分
+        const url = termId ? `/api/teacher/schedule?termId=${termId}` : '/api/teacher/schedule';
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(getCredentials())
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) window.location.href = '/login.html';
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                renderSchedule(data);
+            })
+            .catch(error => {
+                console.error('获取课表信息失败:', error);
+                alert('加载课表信息失败，请稍后重试。');
+            });
+    }
+
+    // 渲染课表 - 核心完善
+    function renderSchedule(schedules) {
+        const tbody = document.getElementById('scheduleTableBody');
+        tbody.innerHTML = '';
+
+        // 固定每日时间段（与表格第一列对应）
+        const timeSlots = [
+            '08:00-09:35', '09:50-11:25', '11:40-13:15', '13:30-15:05',
+            '15:20-16:55', '17:10-18:45', '19:00-20:35'
+        ];
+
+        // 初始化课表映射：key=星期几(1-7)，value=数组(7个时间段)，每个时间段存对应课程
+        const scheduleMap = {};
+        for (let weekday = 1; weekday <= 7; weekday++) {
+            scheduleMap[weekday] = Array(timeSlots.length).fill(null).map(() => []);
+        }
+
+        // 填充课程数据到映射中
+        if (schedules && schedules.length > 0) {
+            schedules.forEach(schedule => {
+                const weekday = schedule.weekday; // 数据库中1=周一，2=周二...7=周日
+                const timeSlotIndex = getTimeSlotIndex(schedule.startTime, schedule.endTime);
+
+                // 仅当星期几和时间段索引有效时，添加课程
+                if (weekday && weekday >= 1 && weekday <= 7 && timeSlotIndex >= 0 && timeSlotIndex < timeSlots.length) {
+                    scheduleMap[weekday][timeSlotIndex].push(schedule);
+                }
+            });
+        }
+
+        // 渲染每行（每个时间段）
+        timeSlots.forEach((time, index) => {
+            const row = document.createElement('tr');
+
+            // 时间段单元格
+            const timeCell = document.createElement('td');
+            timeCell.innerHTML = `<div class="time-slot">${time}</div>`;
+            row.appendChild(timeCell);
+
+            // 周一到周日的单元格（1-7对应周一到周日）
+            for (let weekday = 1; weekday <= 7; weekday++) {
+                const cell = document.createElement('td');
+                const courses = scheduleMap[weekday][index];
+
+                // 有课程则渲染课程信息，无课程则显示"-"
+                if (courses.length > 0) {
+                    courses.forEach(course => {
+                        const courseDiv = document.createElement('div');
+                        courseDiv.className = 'schedule-item mb-1';
+                        // 课程名称取自courses表的name，教室取自classroom表的name
+                        courseDiv.innerHTML = `
+                            <div class="fw-bold">${course.course?.name || '未知课程'}</div>
+                            <div class="small">${course.classroom?.name || '待定'}</div>
+                            <div class="small text-muted">${course.startTime}-${course.endTime}</div>
+                        `;
+                        cell.appendChild(courseDiv);
+                    });
+                } else {
+                    cell.innerHTML = '<div class="empty-course">-</div>';
+                }
+
+                row.appendChild(cell);
+            }
+
+            tbody.appendChild(row);
+        });
+    }
+
+    // 完善时间段匹配逻辑：根据课程的startTime和endTime匹配对应的时间段索引
+    function getTimeSlotIndex(startTime, endTime) {
+        // 与timeSlots数组顺序一致的时间段字符串
+        const timeSlotStrings = [
+            '08:00-09:35', '09:50-11:25', '11:40-13:15', '13:30-15:05',
+            '15:20-16:55', '17:10-18:45', '19:00-20:35'
+        ];
+
+        // 拼接课程的时间段字符串（与timeSlotStrings格式一致）
+        const courseTimeString = `${startTime}-${endTime}`;
+
+        // 返回匹配到的索引，未匹配到返回-1
+        return timeSlotStrings.findIndex(slot => slot === courseTimeString);
+    }
+</script>
+
+<!-- 引入 Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

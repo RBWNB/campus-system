@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人信息 - 学工管理系统</title>
+    <!-- 引入 Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- 引入 Font Awesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 引入我们统一的 style.css -->
+    <link href="/css/style.css" rel="stylesheet">
+    <!-- Optional: Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        /* 移除原有的内联样式，完全依赖 style.css 和 Bootstrap */
+        /* 确保 Bootstrap 的 form-control 类能正常应用 */
+        .form-control {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        /* 只读输入框样式优化 */
+        .form-control[readonly] {
+            background-color: #f8f9fa;
+            cursor: not-allowed;
+            border-color: #e9ecef;
+        }
+        /* 禁用输入框样式增强（确保视觉上明确不可修改） */
+        .form-control[disabled] {
+            background-color: #f1f3f5;
+            opacity: 1;
+            border-color: #dee2e6;
+        }
+        /* 下拉列表样式适配，保持与输入框一致 */
+        .form-select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+    </style>
+</head>
+<body>
+<!-- 统一的导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="#">
+            <i class="fas fa-graduation-cap me-2"></i>学工管理系统
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/student/index.html">
+                        <i class="fas fa-home me-1"></i>首页
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="/student/profile.html">
+                        <i class="fas fa-user me-1"></i>个人信息
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/student/grades.html">
+                        <i class="fas fa-chart-bar me-1"></i>成绩查询
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/student/schedule.html">
+                        <i class="fas fa-calendar-alt me-1"></i>我的课表
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/student/courses.html">
+                        <i class="fas fa-book me-1"></i>课程查询
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/student/leaves.html">
+                        <i class="fas fa-calendar-minus me-1"></i>请假申请
+                    </a>
+                </li>
+            </ul>
+            <div class="navbar-nav">
+                <a class="nav-link text-white" href="/announcements.html">
+                    <i class="fas fa-bullhorn me-1"></i>公告查看
+                </a>
+                <a class="nav-link text-white" href="#" onclick="logout()">
+                    <i class="fas fa-sign-out-alt me-1"></i>登出账号
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container my-4">
+    <!-- 页面标题区域，模仿首页的欢迎横幅 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="p-4 bg-gradient-success text-white rounded-3 shadow-sm">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h1 class="display-6 fw-bold mb-2">个人信息管理</h1>
+                        <p class="mb-0">查看和更新您的个人资料（学号不可修改）</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-address-card fa-3x opacity-75"></i> <!-- 使用style.css中的opacity-75 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 内容区域 -->
+    <div class="row">
+        <div class="col-12">
+            <!-- 个人信息表单，使用card包裹 -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light py-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-edit text-primary me-2"></i>基本信息
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- 使用Bootstrap的grid系统组织表单 -->
+                    <form id="profileForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="studentNo" class="form-label">学号:</label>
+                                <!-- 关键修改：同时添加readonly和disabled，确保视觉不可修改+提交不传递 -->
+                                <input type="text" id="studentNo" name="studentNo" class="form-control" readonly disabled>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">姓名:</label>
+                                <input type="text" id="name" name="name" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-3">
+                            <div class="col-md-6">
+                                <label for="major" class="form-label">专业:</label>
+                                <input type="text" id="major" name="major" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="grade" class="form-label">年级:</label>
+                                <!-- 核心修改：将输入框改为下拉列表 -->
+                                <select id="grade" name="grade" class="form-select" required>
+                                    <option value="">请选择年级</option>
+                                    <option value="大一">大一</option>
+                                    <option value="大二">大二</option>
+                                    <option value="大三">大三</option>
+                                    <option value="大四">大四</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-3">
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">电话:</label>
+                                <input type="text" id="phone" name="phone" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">邮箱:</label>
+                                <input type="email" id="email" name="email" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label for="address" class="form-label">地址:</label>
+                            <textarea id="address" name="address" rows="4" class="form-control"></textarea>
+                        </div>
+                        <div class="mt-3 text-end">
+                            <!-- 使用style.css中的btn-custom，并结合Bootstrap颜色类 -->
+                            <button type="submit" class="btn btn-primary btn-custom">
+                                <i class="fas fa-save me-1"></i> 保存信息
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 获取存储的凭据
+    function getCredentials() {
+        return localStorage.getItem('credentials') || '';
+    }
+
+    // 退出函数
+    function logout() {
+        // 1. 移除本地存储的凭据
+        localStorage.removeItem('credentials');
+
+        // 2. 发送 POST 请求到 Spring Security 的 logout URL
+        //    Spring Security 会处理此 URL 的退出逻辑
+        fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: {
+                // 对于 Basic Auth，我们不需要发送 Authorization 头，因为我们已经删除了凭据。
+                // Spring Security 的 LogoutFilter 会处理这个 POST 请求。
+                'Content-Type': 'application/json' // POST 请求通常需要 Content-Type
+            }
+        })
+            .then(response => {
+                // 无论后端响应是 200 OK 还是 401 Unauthorized，都认为是成功退出了（或因认证丢失而跳转）
+                // 最终目的都是跳转到登录页
+                if (response.ok || response.status === 401) {
+                    console.log("Logout successful or session expired. Redirecting to login page.");
+                    window.location.href = '/login.html';
+                } else {
+                    // 发生其他非预期的错误
+                    console.error('Logout failed with status:', response.status);
+                    window.location.href = '/login.html'; // 无论如何都跳转到登录页
+                }
+            })
+            .catch(error => {
+                // 请求本身失败（网络错误等）
+                console.error('Error during logout fetch:', error);
+                window.location.href = '/login.html'; // 跳转到登录页
+            });
+    }
+
+    // 在每个页面的 window.onload 中添加权限检查
+    window.onload = function() {
+        const credentials = localStorage.getItem('credentials');
+        if (!credentials) {
+            window.location.href = '/login.html';
+            return;
+        }
+
+        // 获取当前用户信息
+        fetch('/api/auth/me', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(credentials)
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/login.html';
+                    }
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const role = data.role[0].authority;
+
+                const currentPath = window.location.pathname;
+
+                // 学生权限校验
+                if (role === 'STUDENT') {
+                    const allowedPaths = ['/student/', '/announcements.html', '/index.html'];
+                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
+                        window.location.href = '/student/index.html';
+                    }
+                }
+                // 教师权限校验
+                if (role === 'TEACHER') {
+                    const allowedPaths = ['/teacher/', '/announcements.html', '/index.html'];
+                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
+                        window.location.href = '/teacher/index.html';
+                    }
+                }
+                // 管理员不做限制
+                if (role === 'ADMIN') {}
+
+                // 权限校验通过后，加载页面核心数据
+                loadProfile();
+            })
+            .catch(error => {
+                console.error('获取用户信息失败:', error);
+                window.location.href = '/login.html';
+            });
+    };
+
+    // 加载个人信息（包含学号）- 关键修复：请求方法改为GET（与Controller的@GetMapping匹配）
+    function loadProfile() {
+        fetch('/api/student/profile', {
+            method: 'GET', // 修复：原POST改为GET，与StudentController的@GetMapping("/profile")对应
+            headers: {
+                'Authorization': 'Basic ' + btoa(getCredentials())
+            }
+            // GET请求无需body，移除空请求体
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) window.location.href = '/login.html';
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data) {
+                    // 显示自动分配的学号（不可修改）- 确保学号不为空时才赋值
+                    document.getElementById('studentNo').value = data.studentNo || '暂无学号';
+                    document.getElementById('name').value = data.user ? data.user.name || '' : '';
+                    document.getElementById('email').value = data.user ? data.user.email || '' : '';
+                    document.getElementById('major').value = data.major || '';
+                    // 核心修改：下拉列表回显选中值
+                    const gradeSelect = document.getElementById('grade');
+                    if (data.grade) {
+                        gradeSelect.value = data.grade;
+                    }
+                    document.getElementById('phone').value = data.phone || '';
+                    document.getElementById('address').value = data.address || '';
+                }
+            })
+            .catch(error => {
+                console.error('获取个人信息失败:', error);
+                alert('加载个人信息失败，请稍后重试。');
+            });
+    }
+
+    // 提交表单更新个人信息（不传递学号）
+    document.getElementById('profileForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const profileData = {
+            major: document.getElementById('major').value,
+            grade: document.getElementById('grade').value, // 保持原有字段名，确保后端正常接收
+            phone: document.getElementById('phone').value,
+            address: document.getElementById('address').value,
+            user: {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+            }
+            // 刻意不传递studentNo字段，确保学号不被修改
+        };
+
+        fetch('/api/student/info', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + btoa(getCredentials())
+            },
+            body: JSON.stringify(profileData)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) window.location.href = '/login.html';
+                    return response.text().then(text => { throw new Error(text || '更新失败') });
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert('个人信息更新成功');
+                // 刷新页面重新加载最新信息
+                loadProfile();
+            })
+            .catch(error => {
+                console.error('更新失败:', error);
+                alert(`更新失败: ${error.message}`);
+            });
+    });
+</script>
+<!-- 引入 Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

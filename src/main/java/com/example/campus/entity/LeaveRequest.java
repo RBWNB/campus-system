@@ -1,3 +1,4 @@
+// LeaveRequest.java
 package com.example.campus.entity;
 
 import lombok.Data;
@@ -12,7 +13,8 @@ import java.sql.Timestamp;
 @Data
 @NoArgsConstructor
 public class LeaveRequest {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
@@ -29,4 +31,23 @@ public class LeaveRequest {
 
     @Column(name = "applied_at")
     private Timestamp appliedAt;
+
+    @Column(name = "reviewed_at")
+    private Timestamp reviewedAt;
+
+    @Column(name = "reviewer")
+    private String reviewer;
+
+    @Column(name = "comment")
+    private String comment;
+
+    // 添加获取学生姓名的方法
+    public String getStudentName() {
+        return student != null && student.getUser() != null ? student.getUser().getName() : "";
+    }
+
+    // 添加获取学生学号的方法
+    public String getStudentId() {
+        return student != null ? student.getStudentNo() : "";
+    }
 }

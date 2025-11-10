@@ -1,0 +1,525 @@
+<!-- teacher/leaves.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>批假管理 - 学工管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="/css/style.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            font-weight: 600;
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .table td {
+            vertical-align: middle;
+            padding: 0.75rem;
+        }
+
+        .status-badge {
+            padding: 0.35em 0.65em;
+            font-size: 0.75em;
+            font-weight: 600;
+            border-radius: 0.25rem;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-approved {
+            background-color: #d1edff;
+            color: #0c5460;
+        }
+
+        .status-rejected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+        }
+
+        .page-title {
+            color: #212529;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .table-responsive {
+            border-radius: 0.375rem;
+            overflow: hidden;
+        }
+
+        .no-data {
+            text-align: center;
+            color: #6c757d;
+            padding: 2rem;
+        }
+
+        .bg-gradient-info {
+            background: linear-gradient(#138496, #138496, #138496 100%);
+        }
+
+        .text-white {
+            color: #fff !important;
+        }
+    </style>
+</head>
+<body>
+<!-- 导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-info shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="#">
+            <i class="fas fa-graduation-cap me-2"></i>学工管理系统
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/teacher/index.html">
+                        <i class="fas fa-home me-1"></i>首页
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/teacher/schedule.html">
+                        <i class="fas fa-calendar-alt me-1"></i>课程安排
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/teacher/grades.html">
+                        <i class="fas fa-chart-bar me-1"></i>成绩管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/teacher/students.html">
+                        <i class="fas fa-users me-1"></i>学生名单
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <!-- 激活当前页面链接 -->
+                    <a class="nav-link active" href="/teacher/leaves.html">
+                        <i class="fas fa-calendar-minus me-1"></i>批假管理
+                    </a>
+                </li>
+            </ul>
+            <div class="navbar-nav">
+                <a class="nav-link text-white" href="/announcements.html">
+                    <i class="fas fa-bullhorn me-1"></i>公告查看
+                </a>
+                <a class="nav-link text-white" href="#" onclick="logout()">
+                    <i class="fas fa-sign-out-alt me-1"></i>登出账号
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container my-4">
+    <!-- 页面标题区域 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="p-4 bg-gradient-info text-white rounded-3 shadow-sm">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h1 class="display-6 fw-bold mb-2">批假管理</h1>
+                        <p class="page-subtitle mb-0">审核学生的请假申请</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-tasks fa-3x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 内容区域 -->
+    <div class="row">
+        <div class="col-12">
+            <!-- 待审批请假记录表格 -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list-alt text-info me-2"></i>待审批请假申请
+                    </h5>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="loadPendingLeaves()">
+                        <i class="fas fa-sync-alt me-1"></i> 刷新
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table id="pendingLeavesTable" class="table table-hover align-middle mb-0">
+                            <thead>
+                            <tr>
+                                <th>学生姓名</th>
+                                <th>学号</th>
+                                <th>开始日期</th>
+                                <th>结束日期</th>
+                                <th>请假原因</th>
+                                <th>申请时间</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- 待审批请假记录将通过JavaScript动态填充 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 已审批请假记录表格 -->
+            <div class="card shadow-sm border-0 mt-4">
+                <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-history text-info me-2"></i>已审批请假记录
+                    </h5>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="loadApprovedLeaves()">
+                        <i class="fas fa-sync-alt me-1"></i> 刷新
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table id="approvedLeavesTable" class="table table-hover align-middle mb-0">
+                            <thead>
+                            <tr>
+                                <th>学生姓名</th>
+                                <th>学号</th>
+                                <th>开始日期</th>
+                                <th>结束日期</th>
+                                <th>请假原因</th>
+                                <th>状态</th>
+                                <th>审批时间</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- 已审批请假记录将通过JavaScript动态填充 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 审批模态框 -->
+<div class="modal fade" id="approveModal" tabindex="-1" aria-labelledby="approveModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="approveModalLabel">审批请假申请</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="approveForm">
+                    <input type="hidden" id="leaveId" name="leaveId">
+                    <div class="mb-3">
+                        <label class="form-label">审批结果</label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="status" id="approveRadio" value="APPROVED" checked>
+                                <label class="form-check-label" for="approveRadio">批准</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="status" id="rejectRadio" value="REJECTED">
+                                <label class="form-check-label" for="rejectRadio">拒绝</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="comment" class="form-label">审批意见（可选）</label>
+                        <textarea class="form-control" id="comment" name="comment" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="submitApproval()">确认审批</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 获取存储的凭据
+    function getCredentials() {
+        return localStorage.getItem('credentials') || '';
+    }
+
+    // 退出函数
+    function logout() {
+        // 1. 移除本地存储的凭据
+        localStorage.removeItem('credentials');
+
+        // 2. 发送 POST 请求到 Spring Security 的 logout URL
+        //    Spring Security 会处理此 URL 的退出逻辑
+        fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: {
+                // 对于 Basic Auth，我们不需要发送 Authorization 头，因为我们已经删除了凭据。
+                // Spring Security 的 LogoutFilter 会处理这个 POST 请求。
+                'Content-Type': 'application/json' // POST 请求通常需要 Content-Type
+            }
+        })
+            .then(response => {
+                // 无论后端响应是 200 OK 还是 401 Unauthorized，都认为是成功退出了（或因认证丢失而跳转）
+                // 最终目的都是跳转到登录页
+                if (response.ok || response.status === 401) {
+                    console.log("Logout successful or session expired. Redirecting to login page.");
+                    window.location.href = '/login.html';
+                } else {
+                    // 发生其他非预期的错误
+                    console.error('Logout failed with status:', response.status);
+                    window.location.href = '/login.html'; // 无论如何都跳转到登录页
+                }
+            })
+            .catch(error => {
+                // 请求本身失败（网络错误等）
+                console.error('Error during logout fetch:', error);
+                window.location.href = '/login.html'; // 跳转到登录页
+            });
+    }
+
+    // 加载待审批请假记录
+    function loadPendingLeaves() {
+        const tbody = document.querySelector('#pendingLeavesTable tbody');
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4"><i class="fas fa-spinner fa-spin me-2"></i>加载中...</td></tr>';
+
+        fetch('/api/teacher/leaves/pending', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(getCredentials())
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) window.location.href = '/login.html';
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                tbody.innerHTML = '';
+
+                if (data && data.length > 0) {
+                    data.forEach(leave => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${leave.studentName || ''}</td>
+                            <td>${leave.studentId || ''}</td>
+                            <td>${leave.startDate || ''}</td>
+                            <td>${leave.endDate || ''}</td>
+                            <td class="text-truncate" style="max-width: 200px;" title="${leave.reason || ''}">${leave.reason || ''}</td>
+                            <td>${leave.appliedAt ? new Date(leave.appliedAt).toLocaleString() : ''}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary" onclick="openApproveModal(${leave.id})">
+                                    <i class="fas fa-check-circle me-1"></i>审批
+                                </button>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                } else {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="7" class="no-data"><i class="fas fa-inbox me-2"></i>暂无待审批请假申请</td>';
+                    tbody.appendChild(row);
+                }
+            })
+            .catch(error => {
+                console.error('获取待审批请假记录失败:', error);
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle me-2"></i>加载待审批请假记录失败，请稍后重试。</td></tr>';
+            });
+    }
+
+    // 加载已审批请假记录
+    function loadApprovedLeaves() {
+        const tbody = document.querySelector('#approvedLeavesTable tbody');
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4"><i class="fas fa-spinner fa-spin me-2"></i>加载中...</td></tr>';
+
+        fetch('/api/teacher/leaves/approved', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(getCredentials())
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) window.location.href = '/login.html';
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                tbody.innerHTML = '';
+
+                if (data && data.length > 0) {
+                    data.forEach(leave => {
+                        // 根据状态设置样式类
+                        let statusClass = 'status-pending';
+                        if (leave.status === 'APPROVED') statusClass = 'status-approved';
+                        if (leave.status === 'REJECTED') statusClass = 'status-rejected';
+
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${leave.studentName || ''}</td>
+                            <td>${leave.studentId || ''}</td>
+                            <td>${leave.startDate || ''}</td>
+                            <td>${leave.endDate || ''}</td>
+                            <td class="text-truncate" style="max-width: 200px;" title="${leave.reason || ''}">${leave.reason || ''}</td>
+                            <td><span class="status-badge ${statusClass}">${getStatusText(leave.status)}</span></td>
+                            <td>${leave.reviewedAt ? new Date(leave.reviewedAt).toLocaleString() : ''}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                } else {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="7" class="no-data"><i class="fas fa-inbox me-2"></i>暂无已审批请假记录</td>';
+                    tbody.appendChild(row);
+                }
+            })
+            .catch(error => {
+                console.error('获取已审批请假记录失败:', error);
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-4"><i class="fas fa-exclamation-triangle me-2"></i>加载已审批请假记录失败，请稍后重试。</td></tr>';
+            });
+    }
+
+    // 获取状态文本
+    function getStatusText(status) {
+        const statusMap = {
+            'PENDING': '待审核',
+            'APPROVED': '已批准',
+            'REJECTED': '已拒绝'
+        };
+        return statusMap[status] || status || '未知';
+    }
+
+    // 打开审批模态框
+    function openApproveModal(leaveId) {
+        document.getElementById('leaveId').value = leaveId;
+        document.getElementById('comment').value = '';
+        document.getElementById('approveRadio').checked = true;
+        new bootstrap.Modal(document.getElementById('approveModal')).show();
+    }
+
+    // 提交审批
+    function submitApproval() {
+        const leaveId = document.getElementById('leaveId').value;
+        const status = document.querySelector('input[name="status"]:checked').value;
+        const comment = document.getElementById('comment').value;
+
+        fetch(`/api/teacher/leaves/${leaveId}/review`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + btoa(getCredentials())
+            },
+            body: JSON.stringify({
+                status: status,
+                comment: comment
+            })
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) window.location.href = '/login.html';
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert('审批成功');
+                bootstrap.Modal.getInstance(document.getElementById('approveModal')).hide();
+                loadPendingLeaves();
+                loadApprovedLeaves();
+            })
+            .catch(error => {
+                console.error('审批失败:', error);
+                alert('审批失败，请稍后重试');
+            });
+    }
+
+    // 页面加载完成后初始化
+    window.onload = function() {
+        const credentials = localStorage.getItem('credentials');
+        if (!credentials) {
+            window.location.href = '/login.html';
+            return;
+        }
+
+        // 获取当前用户信息
+        fetch('/api/auth/me', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(credentials)
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/login.html';
+                    }
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const role = data.role[0].authority;
+
+                const currentPath = window.location.pathname;
+
+                // 教师权限校验
+                if (role === 'TEACHER') {
+                    const allowedPaths = ['/teacher/', '/announcements.html', '/index.html'];
+                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
+                        window.location.href = '/teacher/index.html';
+                    }
+                }
+                // 学生权限校验
+                if (role === 'STUDENT') {
+                    const allowedPaths = ['/student/', '/announcements.html', '/index.html'];
+                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
+                        window.location.href = '/student/index.html';
+                    }
+                }
+                // 管理员不做限制
+                if (role === 'ADMIN') {}
+
+                // 权限校验通过后，加载页面核心数据
+                loadPendingLeaves();
+                loadApprovedLeaves();
+            })
+            .catch(error => {
+                console.error('获取用户信息失败:', error);
+                window.location.href = '/login.html';
+            });
+    };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

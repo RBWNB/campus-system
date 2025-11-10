@@ -1,5 +1,6 @@
 package com.example.campus.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -15,18 +16,38 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable=false, unique=true)
+    @Column(nullable = false, unique = true)
     private String username;
 
-    @Column(nullable=false)
+    @Column(nullable = false)
     private String password;
 
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    // 确保 name 字段非空（教师用户必须填写姓名）
+    @Column(nullable = false)
     private String name;
+
     private String email;
 
     @Column(name = "created_at")
     private Timestamp createdAt;
+
+    @JsonIgnore
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Teacher teacher;
+
+    @JsonIgnore
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Student student;
+
+    // 新增：保存时自动同步姓名到关联的 Teacher 实体
+    @PrePersist
+    @PreUpdate
+    public void syncTeacherName() {
+        if (this.teacher != null && this.name != null) {
+            this.teacher.setName(this.name);
+        }
+    }
 }

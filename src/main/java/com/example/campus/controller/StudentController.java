@@ -1,7 +1,10 @@
 package com.example.campus.controller;
 
 import com.example.campus.entity.*;
-import com.example.campus.repository.*;
+import com.example.campus.repository.GradeRepository;
+import com.example.campus.repository.LeaveRepository;
+import com.example.campus.repository.StudentRepository;
+import com.example.campus.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -36,14 +39,25 @@ public class StudentController {
         User u = userRepo.findByUsername(ud.getUsername()).orElse(null);
         if (u == null) return ResponseEntity.notFound().build();
 
-        Student s = studentRepo.findByUserId(u.getId()).orElse(new Student());
+        // 更新用户信息（姓名和邮箱）
+        if (info.getUser() != null) {
+            if (info.getUser().getName() != null && !info.getUser().getName().trim().isEmpty()) {
+                u.setName(info.getUser().getName());
+            }
+            if (info.getUser().getEmail() != null && !info.getUser().getEmail().trim().isEmpty()) {
+                u.setEmail(info.getUser().getEmail());
+            }
+            userRepo.save(u);
+        }
+
+        Student s = studentRepo.findByUserId(u.getId()).orElseThrow(() -> new RuntimeException("学生信息不存在"));
         s.setUser(u);
-        s.setStudentNo(info.getStudentNo());
         s.setMajor(info.getMajor());
         s.setGrade(info.getGrade());
         s.setPhone(info.getPhone());
         s.setAddress(info.getAddress());
         studentRepo.save(s);
+
         return ResponseEntity.ok(s);
     }
 
@@ -78,6 +92,6 @@ public class StudentController {
         User u = userRepo.findByUsername(ud.getUsername()).orElse(null);
         Student s = studentRepo.findByUserId(u.getId()).orElse(null);
         if (s == null) return ResponseEntity.badRequest().body("学生信息未录入");
-        return ResponseEntity.ok(leaveRepo.findByStudentId(s.getId()));
+        return ResponseEntity.ok(leaveRepo.findByStudent_Id(s.getId()));
     }
 }

@@ -25,4 +25,8 @@ public class Announcement {
     private Timestamp publishedAt;
 
     private Boolean pinned = false;
+
+    public boolean isPinned() {
+        return pinned;
+    }
 }

@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户管理 - 学工管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="/css/style.css" rel="stylesheet">
+    <style>
+        .is-invalid {
+            border-color: #dc3545;
+            padding-right: calc(1.5em + 0.75rem);
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 3.6.4.4.4-.4'/%3e%3cpath d='M6 7v1'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+        }
+        .invalid-feedback {
+            display: none;
+            width: 100%;
+            margin-top: 0.25rem;
+            font-size: 0.875em;
+            color: #dc3545;
+        }
+        .is-invalid ~ .invalid-feedback {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="#">
+            <i class="fas fa-graduation-cap me-2"></i>学工管理系统
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/index.html">
+                        <i class="fas fa-home me-1"></i>首页
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/courses.html">
+                        <i class="fas fa-book me-1"></i>课程管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/classrooms.html">
+                        <i class="fas fa-building me-1"></i>教室管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/schedule.html">
+                        <i class="fas fa-calendar-alt me-1"></i>排课管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/announcements.html">
+                        <i class="fas fa-bullhorn me-1"></i>公告管理
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/admin/users.html">
+                        <i class="fas fa-users me-1"></i>用户管理
+                    </a>
+                </li>
+            </ul>
+            <div class="navbar-nav">
+                <a class="nav-link text-white" href="#" onclick="logout()">
+                    <i class="fas fa-sign-out-alt me-1"></i>退出
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container my-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="p-4 bg-gradient-primary text-white rounded-3 shadow-sm">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h1 class="display-6 fw-bold mb-2">用户管理</h1>
+                        <p class="mb-0">管理系统中的用户账户</p>
+                    </div>
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-users fa-3x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-users text-primary me-2"></i>用户列表
+            </h5>
+            <button class="btn btn-success" onclick="openAddModal()">
+                <i class="fas fa-plus me-1"></i>添加用户
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <div class="input-group">
+                    <input type="text" id="searchInput" class="form-control" placeholder="输入用户名或姓名进行搜索">
+                    <button class="btn btn-outline-primary" onclick="searchUsers()">
+                        <i class="fas fa-search"></i> 搜索
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover" id="usersTable">
+                    <thead>
+                    <tr>
+                        <th>用户名</th>
+                        <th>姓名</th>
+                        <th>邮箱</th>
+                        <th>
+                            <div class="d-inline-flex dropdown">
+                                <span>角色</span>
+                                <a href="#" role="button" id="roleFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false" class="text-decoration-none ms-1">
+                                    <i class="fas fa-filter text-primary"></i>
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="roleFilterDropdown">
+                                    <li><a class="dropdown-item" href="#" data-role="">全部</a></li>
+                                    <li><a class="dropdown-item" href="#" data-role="ADMIN">管理员</a></li>
+                                    <li><a class="dropdown-item" href="#" data-role="TEACHER">教师</a></li>
+                                    <li><a class="dropdown-item" href="#" data-role="STUDENT">学生</a></li>
+                                </ul>
+                            </div>
+                        </th>
+                        <th>创建时间</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">添加用户</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="userForm">
+                    <input type="hidden" id="userId">
+
+                    <div class="mb-3" id="studentNoContainer" style="display: none;">
+                        <label for="studentNo" class="form-label">学号:</label>
+                        <input type="text" class="form-control" id="studentNo" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="username" class="form-label">用户名:</label>
+                        <input type="text" class="form-control" id="username" required>
+                        <div class="invalid-feedback">请输入用户名</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="name" class="form-label">姓名:</label>
+                        <input type="text" class="form-control" id="name" required>
+                        <div class="invalid-feedback">请输入姓名</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">邮箱:</label>
+                        <input type="email" class="form-control" id="email" oninput="validateEmail(this)">
+                        <div class="invalid-feedback">请输入有效的邮箱地址（必须包含@符号）</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">密码:</label>
+                        <input type="password" class="form-control" id="password" required>
+                        <div class="invalid-feedback">请输入密码</div>
+                        <div class="form-text">添加用户时必填，编辑用户时留空则不修改密码</div>
+                    </div>
+
+                    <div class="mb-3" id="roleContainer">
+                        <label for="role" class="form-label">角色:</label>
+                        <select class="form-select" id="role" required>
+                            <option value="ADMIN">管理员</option>
+                            <option value="TEACHER">教师</option>
+                        </select>
+                        <div class="invalid-feedback">请选择角色</div>
+                    </div>
+
+                    <div class="mb-3" id="teacherFields" style="display: none; border-top: 1px solid #eee; padding-top: 15px; margin-top: 15px;">
+                        <h6 class="text-muted mb-3"><i class="fas fa-chalkboard-teacher me-1"></i>教师专属信息</h6>
+                        <div class="mb-3">
+                            <label for="teacherNo" class="form-label">教师编号:</label>
+                            <input type="text" class="form-control" id="teacherNo" placeholder="请输入唯一教师编号" required>
+                            <div class="invalid-feedback">请输入教师编号</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="title" class="form-label">职称:</label>
+                            <input type="text" class="form-control" id="title" placeholder="请输入职称">
+                        </div>
+                        <div class="mb-3">
+                            <label for="department" class="form-label">所属学院:</label>
+                            <input type="text" class="form-control" id="department" placeholder="请输入所属学院">
+                        </div>
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">联系电话:</label>
+                            <input type="text" class="form-control" id="phone" placeholder="请输入联系电话">
+                        </div>
+                        <div class="mb-3">
+                            <label for="office" class="form-label">办公室:</label>
+                            <input type="text" class="form-control" id="office" placeholder="请输入办公室位置">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveUser()">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 全局变量，用于存储当前选中的角色，默认为空（全部）
+    let currentRoleFilter = '';
+
+    // 获取存储的凭据
+    function getCredentials() {
+        return localStorage.getItem('credentials') || '';
+    }
+
+    // 退出函数
+    function logout() {
+        // 1. 移除本地存储的凭据
+        localStorage.removeItem('credentials');
+
+        // 2. 发送 POST 请求到 Spring Security 的 logout URL
+        fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => {
+                if (response.ok || response.status === 401) {
+                    console.log("Logout successful or session expired. Redirecting to login page.");
+                    window.location.href = '/login.html';
+                } else {
+                    console.error('Logout failed with status:', response.status);
+                    window.location.href = '/login.html'; // 无论如何都跳转到登录页
+                }
+            })
+            .catch(error => {
+                console.error('Error during logout fetch:', error);
+                window.location.href = '/login.html'; // 跳转到登录页
+            });
+    }
+
+    // 邮箱验证函数
+    function validateEmail(input) {
+        const email = input.value.trim();
+        if (email && !email.includes('@')) {
+            input.classList.add('is-invalid');
+            return false;
+        } else {
+            input.classList.remove('is-invalid');
+            return true;
+        }
+    }
+
+    // 表单验证函数
+    function validateForm() {
+        let isValid = true;
+
+        // 验证必填字段
+        const requiredFields = [
+            { id: 'username', message: '请输入用户名' },
+            { id: 'name', message: '请输入姓名' }, // 新增姓名必填验证
+            { id: 'role', message: '请选择角色' }
+        ];
+
+        // 如果是添加用户，密码必填
+        const userId = document.getElementById('userId').value;
+        if (!userId) {
+            requiredFields.push({ id: 'password', message: '请输入密码' });
+        }
+
+        // 验证必填字段
+        requiredFields.forEach(field => {
+            const element = document.getElementById(field.id);
+            if (!element.value.trim()) {
+                element.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                element.classList.remove('is-invalid');
+            }
+        });
+
+        // 验证邮箱格式
+        const email = document.getElementById('email');
+        if (email.value.trim() && !validateEmail(email)) {
+            isValid = false;
+        }
+
+        // 如果是教师角色，并且是添加模式，验证教师编号
+        const role = document.getElementById('role').value;
+        if (role === 'TEACHER' && !userId) { // 检查是否是添加模式
+            const teacherNo = document.getElementById('teacherNo');
+            if (!teacherNo.value.trim()) {
+                teacherNo.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                teacherNo.classList.remove('is-invalid');
+            }
+        }
+
+        return isValid;
+    }
+
+    // 清除验证状态
+    function clearValidation() {
+        const invalidFields = document.querySelectorAll('.is-invalid');
+        invalidFields.forEach(field => {
+            field.classList.remove('is-invalid');
+        });
+    }
+
+    // 设置表单只读/可写状态的通用函数
+    function setFormReadOnly(isReadOnly) {
+        const formElements = document.querySelectorAll('#userForm input, #userForm select');
+        const passwordField = document.getElementById('password').closest('.mb-3');
+        const saveButton = document.querySelector('.modal-footer .btn-primary');
+        const roleSelect = document.getElementById('role');
+
+        formElements.forEach(el => {
+            if (el.type !== 'hidden') {
+                el.readOnly = isReadOnly;
+            }
+        });
+
+        // Select 元素使用 disabled 属性
+        roleSelect.disabled = isReadOnly;
+
+        // 隐藏密码字段（在只读模式下）
+        if (passwordField) {
+            passwordField.style.display = isReadOnly ? 'none' : 'block';
+        }
+
+        // 隐藏/显示底部保存按钮
+        if (saveButton) {
+            saveButton.style.display = isReadOnly ? 'none' : 'block';
+        }
+
+        const roleContainer = document.getElementById('roleContainer');
+        if (roleContainer) {
+            roleContainer.style.display = isReadOnly ? 'none' : 'block';
+        }
+    }
+
+    // 加载用户信息（包含所有用户：管理员、教师、学生）
+    // 接受 query (搜索关键词) 和 role (筛选角色)
+    function loadUsers(query = '', role = '') {
+        let url = '/api/admin/users';
+        const params = new URLSearchParams();
+
+        if (query) {
+            params.append('q', query);
+        }
+        if (role) {
+            params.append('role', role);
+        }
+
+        if (params.toString()) {
+            url += `?${params.toString()}`;
+        }
+
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(getCredentials())
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) window.location.href = '/login.html';
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const tbody = document.querySelector('#usersTable tbody');
+                tbody.innerHTML = '';
+
+                if (data && data.length > 0) {
+                    data.forEach(user => {
+                        const roleMap = {
+                            'ADMIN': '管理员',
+                            'STUDENT': '学生',
+                            'TEACHER': '教师'
+                        };
+
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                        <td>${user.username || ''}</td>
+                        <td>${user.name || ''}</td>
+                        <td>${user.email || ''}</td>
+                        <td><span class="badge ${getRoleBadgeClass(user.role)}">${roleMap[user.role] || user.role || ''}</span></td>
+                        <td>${user.createdAt ? new Date(user.createdAt).toLocaleString() : ''}</td>
+                        <td>
+                            ${user.role === 'STUDENT' ? `
+                            <button class="btn btn-sm btn-outline-info me-1" onclick="viewStudent(${user.id})">
+                                <i class="fas fa-eye"></i> 查看
+                            </button>
+                            ` : ''}
+                            ${user.role !== 'STUDENT' ? `
+                            <button class="btn btn-sm btn-outline-primary me-1" onclick="editUser(${user.id})">
+                                <i class="fas fa-edit"></i> 编辑
+                            </button>
+                            ` : ''}
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteUser(${user.id})" ${user.role === 'ADMIN' ? 'disabled' : ''}>
+                                <i class="fas fa-trash"></i> 删除
+                            </button>
+                        </td>
+                    `;
+                        tbody.appendChild(row);
+                    });
+                } else {
+                    const row = document.createElement('tr');
+                    row.innerHTML = '<td colspan="6" class="text-center text-muted">暂无用户信息</td>';
+                    tbody.appendChild(row);
+                }
+            })
+            .catch(error => {
+                console.error('获取用户信息失败:', error);
+                const tbody = document.querySelector('#usersTable tbody');
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">加载用户信息失败，请稍后重试。</td></tr>';
+            });
+    }
+
+    // 搜索用户 (已更新为使用 currentRoleFilter)
+    function searchUsers() {
+        const query = document.getElementById('searchInput').value;
+        loadUsers(query, currentRoleFilter);
+    }
+
+    // 获取角色徽章样式
+    function getRoleBadgeClass(role) {
+        switch(role) {
+            case 'ADMIN': return 'bg-danger';
+            case 'TEACHER': return 'bg-info';
+            case 'STUDENT': return 'bg-success';
+            default: return 'bg-secondary';
+        }
+    }
+
+    // 打开添加用户模态框
+    function openAddModal() {
+        document.getElementById('modalTitle').textContent = '添加用户';
+        document.getElementById('userForm').reset();
+        document.getElementById('userId').value = '';
+
+        // 隐藏教师和学生字段
+        document.getElementById('teacherFields').style.display = 'none';
+
+        // 隐藏学号容器
+        document.getElementById('studentNoContainer').style.display = 'none';
+
+        setFormReadOnly(false); // 设置为可写模式
+        clearValidation(); // 清除验证状态
+        new bootstrap.Modal(document.getElementById('userModal')).show();
+    }
+
+    // 编辑用户（只能编辑管理员和教师）
+    function editUser(userId) {
+        fetch(`/api/admin/users/${userId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(getCredentials())
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) window.location.href = '/login.html';
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(user => {
+                if (user.role === 'STUDENT') {
+                    alert('学生用户请在学生管理页面进行编辑');
+                    return;
+                }
+
+                document.getElementById('modalTitle').textContent = '编辑用户';
+                document.getElementById('userId').value = user.id;
+                document.getElementById('username').value = user.username || '';
+                document.getElementById('name').value = user.name || '';
+                document.getElementById('email').value = user.email || '';
+                document.getElementById('password').value = ''; // Don't prefill password
+                document.getElementById('role').value = user.role || '';
+
+                // 在编辑模式下，强制隐藏教师和学生专属信息
+                document.getElementById('teacherFields').style.display = 'none';
+                document.getElementById('studentNoContainer').style.display = 'none';
+
+
+                setFormReadOnly(false); // 设置为可写模式
+                clearValidation(); // 清除验证状态
+                new bootstrap.Modal(document.getElementById('userModal')).show();
+            })
+            .catch(error => console.error('获取用户信息失败:', error));
+    }
+
+    // 查看学生用户详情 (只读)
+    function viewStudent(userId) {
+        // 假设 `/api/admin/users/${userId}` 返回的用户对象包含 student 实体 (e.g., user.student.studentNo)
+        fetch(`/api/admin/users/${userId}`, {
+            method: 'GET',
+            headers: { 'Authorization': 'Basic ' + btoa(getCredentials()) }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) window.location.href = '/login.html';
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(user => {
+                document.getElementById('modalTitle').textContent = '查看学生信息 (只读)';
+                document.getElementById('userForm').reset();
+                document.getElementById('userId').value = user.id;
+
+                // 填充用户基本信息
+                document.getElementById('username').value = user.username || '';
+                document.getElementById('name').value = user.name || '';
+                document.getElementById('email').value = user.email || '';
+                document.getElementById('role').value = user.role || ''; // 仍然需要填充值，但会被 setFormReadOnly 隐藏
+
+                document.getElementById('teacherFields').style.display = 'none';
+
+                const studentNoContainer = document.getElementById('studentNoContainer');
+                studentNoContainer.style.display = 'block';
+
+                // 填充学号
+                const studentNoInput = document.getElementById('studentNo');
+                if (user.student) {
+                    studentNoInput.value = user.student.studentNo || 'N/A';
+                } else {
+                    studentNoInput.value = 'N/A'; // 确保显示 'N/A' 如果信息缺失
+                }
+
+                // 设置为只读模式 (此函数会隐藏密码和角色)
+                setFormReadOnly(true);
+                clearValidation();
+                new bootstrap.Modal(document.getElementById('userModal')).show();
+            })
+            .catch(error => console.error('获取学生信息失败:', error));
+    }
+
+    // 删除用户（不能删除管理员）
+    function deleteUser(userId) {
+        // 先获取用户信息确认角色
+        fetch(`/api/admin/users/${userId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(getCredentials())
+            }
+        })
+            .then(response => response.json())
+            .then(user => {
+                if (user.role === 'ADMIN') {
+                    alert('不能删除管理员用户！');
+                    return;
+                }
+
+                if (confirm(`确定要删除用户 "${user.username}" 吗？`)) {
+                    fetch(`/api/admin/users/${userId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': 'Basic ' + btoa(getCredentials())
+                        }
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                alert('用户删除成功');
+                                loadUsers(document.getElementById('searchInput').value, currentRoleFilter); // 重新加载用户列表
+                            } else {
+                                response.text().then(text => alert('用户删除失败: ' + text));
+                            }
+                        })
+                        .catch(error => {
+                            console.error('删除用户失败:', error);
+                            alert('删除用户失败');
+                        });
+                }
+            })
+            .catch(error => {
+                console.error('获取用户信息失败:', error);
+                alert('无法获取用户信息');
+            });
+    }
+
+    // 保存用户信息（包含表单验证）
+    function saveUser() {
+        // 清除之前的验证状态
+        clearValidation();
+
+        // 验证表单
+        if (!validateForm()) {
+            alert('请完善表单信息！');
+            return;
+        }
+
+        const userId = document.getElementById('userId').value;
+        const userData = {
+            username: document.getElementById('username').value.trim(),
+            name: document.getElementById('name').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            role: document.getElementById('role').value
+        };
+
+        // 密码处理：添加用户时必填，编辑时留空则不修改
+        const password = document.getElementById('password').value.trim();
+        if (password) {
+            userData.password = password;
+        }
+
+        // 角色为教师时，并且是添加模式，添加教师专属信息（包含姓名字段）
+        if (userData.role === 'TEACHER' && !userId) {
+            const teacherNo = document.getElementById('teacherNo').value.trim();
+            // 构建教师信息对象，添加name属性（与用户姓名保持一致）
+            userData.teacher = {
+                name: userData.name, // 将用户姓名同步到教师表的name属性
+                teacherNo: teacherNo,
+                title: document.getElementById('title').value.trim(),
+                department: document.getElementById('department').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                office: document.getElementById('office').value.trim()
+            };
+        }
+
+        // 接口地址修正：添加用户应调用 /api/auth/admin/register（与Controller对应）
+        const method = userId ? 'PUT' : 'POST';
+        const url = userId ? `/api/admin/users/${userId}` : '/api/auth/admin/register';
+
+        fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + btoa(getCredentials())
+            },
+            body: JSON.stringify(userData)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(text || '操作失败');
+                    });
+                }
+                // PUT 请求成功可能返回空 body，所以这里用 text()
+                return response.text().then(text => text || (userId ? '用户信息更新成功' : '用户添加成功'));
+            })
+            .then(message => {
+                alert(message || '用户信息保存成功');
+                bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
+                loadUsers(document.getElementById('searchInput').value, currentRoleFilter); // 重新加载用户列表
+            })
+            .catch(error => {
+                console.error('保存用户信息失败:', error);
+                alert('保存用户信息失败: ' + error.message);
+            });
+    }
+
+    // 角色选择change事件：仅在 "添加用户" 模式下动态显示/隐藏教师字段
+    document.getElementById('role').addEventListener('change', function() {
+        const userId = document.getElementById('userId').value; // 获取当前是否是编辑模式
+        const teacherFields = document.getElementById('teacherFields');
+
+        // 确保学号字段始终隐藏
+        document.getElementById('studentNoContainer').style.display = 'none';
+
+        // 只有在非编辑模式 (即添加模式，userId为空) 且角色是 TEACHER 时，才显示教师字段
+        const shouldShowTeacherFields = !userId && (this.value === 'TEACHER');
+
+        teacherFields.style.display = shouldShowTeacherFields ? 'block' : 'none';
+
+        // 清除教师字段的验证状态
+        if (this.value !== 'TEACHER' || userId) {
+            document.getElementById('teacherNo').classList.remove('is-invalid');
+        }
+    });
+
+    // 添加输入框实时验证
+    document.addEventListener('DOMContentLoaded', function() {
+        // 用户名实时验证
+        document.getElementById('username').addEventListener('blur', function() {
+            if (!this.value.trim()) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        });
+
+        // 姓名实时验证（新增）
+        document.getElementById('name').addEventListener('blur', function() {
+            if (!this.value.trim()) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        });
+
+        // 邮箱实时验证
+        document.getElementById('email').addEventListener('blur', function() {
+            validateEmail(this);
+        });
+
+        // 教师编号实时验证 (仅在添加模式下)
+        document.getElementById('teacherNo').addEventListener('blur', function() {
+            const userId = document.getElementById('userId').value;
+            if (!userId && document.getElementById('role').value === 'TEACHER' && !this.value.trim()) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        });
+
+        // 密码实时验证
+        document.getElementById('password').addEventListener('blur', function() {
+            const userId = document.getElementById('userId').value;
+            if (!userId && !this.value.trim()) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        });
+
+        // --- 角色筛选下拉菜单事件处理（集成到表格标题） ---
+        document.querySelectorAll('#roleFilterDropdown + .dropdown-menu .dropdown-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                const role = this.getAttribute('data-role');
+                const icon = document.querySelector('#roleFilterDropdown .fas');
+
+                // 1. 更新全局筛选角色
+                currentRoleFilter = role;
+
+                // 2. 更新图标颜色（提示用户当前有筛选条件）
+                if (role) {
+                    icon.classList.add('text-danger'); // 使用红色/警告色表示已筛选
+                    icon.classList.remove('text-primary');
+                } else {
+                    icon.classList.add('text-primary'); // 使用主色表示无筛选（全部）
+                    icon.classList.remove('text-danger');
+                }
+
+                // 3. 重新加载用户列表 (带上搜索关键词和新角色)
+                const query = document.getElementById('searchInput').value;
+                loadUsers(query, currentRoleFilter);
+            });
+        });
+    });
+
+    // --- window.onload ---
+    window.onload = function() {
+        const credentials = localStorage.getItem('credentials');
+        if (!credentials) {
+            window.location.href = '/login.html';
+            return;
+        }
+
+        // 获取当前用户信息
+        fetch('/api/auth/me', {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Basic ' + btoa(credentials)
+            }
+        })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/login.html';
+                    }
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const role = data.role[0].authority;
+
+                const currentPath = window.location.pathname;
+
+                // 教师权限校验
+                if (role === 'TEACHER') {
+                    const allowedPaths = ['/teacher/', '/announcements.html', '/index.html'];
+                    if (!allowedPaths.some(path => currentPath.startsWith(path))) {
+                        window.location.href = '/teacher/index.html';
+                    }
+                }
+                // 管理员不做限制
+                if (role === 'ADMIN') {}
+
+                // 权限校验通过后，加载页面核心数据
+                loadUsers();
+            })
+            .catch(error => {
+                console.error('获取用户信息失败:', error);
+                window.location.href = '/login.html';
+            });
+    };
+
+    // 回车搜索
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            searchUsers();
+        }
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
