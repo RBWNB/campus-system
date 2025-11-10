@@ -597,12 +597,23 @@
                                 alert('用户删除成功');
                                 loadUsers(document.getElementById('searchInput').value, currentRoleFilter); // 重新加载用户列表
                             } else {
-                                response.text().then(text => alert('用户删除失败: ' + text));
+                                // --- 修改点在这里 ---
+                                // 检查是否为服务器错误 (500) 或冲突 (409)
+                                // 这通常意味着像外键约束这样的数据完整性问题
+                                if (response.status === 500 || response.status === 409) {
+                                    console.error('删除失败，服务器返回状态:', response.status);
+                                    // 显示用户友好的错误提示
+                                    alert('用户删除失败：\n该用户（如教师或学生）可能已关联了课程、成绩或其他数据，无法删除。\n\n请先解除相关数据（例如删除该教师的排课）后再试。');
+                                } else {
+                                    // 对于其他错误 (如 401, 403, 404)，显示服务器返回的原始文本
+                                    response.text().then(text => alert('用户删除失败: ' + (text || '未知错误')));
+                                }
+                                // --- 修改结束 ---
                             }
                         })
                         .catch(error => {
-                            console.error('删除用户失败:', error);
-                            alert('删除用户失败');
+                            console.error('删除用户失败 (Fetch Catch):', error);
+                            alert('删除用户失败，请检查网络连接。');
                         });
                 }
             })

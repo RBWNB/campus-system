@@ -196,16 +196,19 @@
      * 1. 加载并显示所有公告到时间线
      *    假设公告 API (/api/announcements) 不需要认证。
      */
+    /**
+     * 1. 加载并显示所有公告到时间线
+     * (已修复索引重复的 BUG)
+     */
     async function loadAnnouncements() {
         const container = document.getElementById('timeline-container');
         const indexContainer = document.getElementById('timeline-index');
 
         try {
-            // *** 移除 Authorization header，假设 API 不需要认证 ***
-            const response = await fetch('/api/announcements'); // 移除了 headers 部分
+            const response = await fetch('/api/announcements');
 
             if (!response.ok) {
-                // 根据 response.status 提供更具体的错误信息
+                // (错误处理逻辑保持不变)
                 let errorMessage = '获取公告失败';
                 if (response.status === 401 || response.status === 403) {
                     errorMessage = '您没有权限查看公告，请先登录。';
@@ -219,7 +222,7 @@
 
             const data = await response.json();
 
-            // 1. 排序：先按置顶，后按时间倒序
+            // 1. 排序：先按置顶，后按时间倒序 (保持不变)
             const sortedData = data.sort((a, b) => {
                 if (b.pinned !== a.pinned) {
                     return b.pinned - a.pinned;
@@ -229,8 +232,8 @@
                 return dateB - dateA;
             });
 
-            container.innerHTML = ''; // 清空加载中的提示
-            indexContainer.innerHTML = ''; // 清空索引加载中的提示
+            container.innerHTML = '';
+            indexContainer.innerHTML = '';
 
             if (sortedData.length === 0) {
                 container.innerHTML = '<div class="text-center text-muted p-5">暂无公告</div>';
@@ -239,8 +242,12 @@
             }
 
             // 2. 动态生成时间线和索引
-            let lastYearMonth = '';
+
+            // --- FIX: 核心修复 ---
+            // 我们不再使用 lastYearMonth，而是用一个 Set 来跟踪已添加的月份
+            const addedMonths = new Set();
             let currentYear = '';
+            // --- END FIX ---
 
             sortedData.forEach(ann => {
                 const isPinned = ann.pinned;
@@ -249,9 +256,7 @@
                 const fullDate = formatTimestamp(ann.publishedAt, 'full');
                 const dateYear = yearMonth.substring(0, 4);
 
-                const isNewMonth = yearMonth !== lastYearMonth;
-
-                // --- 2b. 生成时间线项 ---
+                // --- 2b. 生成时间线项 (逻辑基本不变) ---
                 const itemDiv = document.createElement('div');
                 itemDiv.classList.add('timeline-item');
 
@@ -259,12 +264,15 @@
                     itemDiv.classList.add('pinned');
                 }
 
-                // 只有是新月份的第一条公告才添加ID，用于索引跳转
-                if (isNewMonth) {
+                // --- FIX: 修复锚点 ID 的添加逻辑 ---
+                // 只有当这个月份的锚点还不存在时，才为 timeline-item 添加 ID
+                // 这样可以确保链接总是跳转到该月份的 *第一条* 记录（无论是置顶还是普通）
+                if (!document.getElementById(`archive-${yearMonth}`)) {
                     itemDiv.id = `archive-${yearMonth}`;
                 }
+                // --- END FIX ---
 
-                // 根据是否置顶设置 badge 样式和内容
+                // ( badge 样式逻辑保持不变 )
                 let badgeClass = 'bg-secondary';
                 let badgeContent = dateDay;
 
@@ -291,9 +299,12 @@
 
                 container.appendChild(itemDiv);
 
-                // --- 2a. 生成索引链接 (只有在新月份时添加) ---
-                if (isNewMonth) {
-                    // 如果年份变化，添加年份标题
+                // --- 2a. 生成索引链接 (已修复) ---
+
+                // --- FIX: 使用 Set 检查月份是否已添加 ---
+                // 仅当 addedMonths 中 *不包含* 当前 yearMonth 时，才添加索引
+                if (!addedMonths.has(yearMonth)) {
+                    // (年份标题逻辑保持不变)
                     if (dateYear !== currentYear) {
                         const yearTitle = document.createElement('div');
                         yearTitle.className = 'index-title bg-light';
@@ -302,21 +313,21 @@
                         currentYear = dateYear;
                     }
 
-                    // 添加月份链接，链接指向 itemDiv.id
+                    // 添加月份链接
                     const monthLink = document.createElement('a');
-                    monthLink.href = `#archive-${yearMonth}`;
+                    monthLink.href = `#archive-${yearMonth}`; // 链接到 itemDiv.id
                     monthLink.className = 'list-group-item list-group-item-action';
                     monthLink.innerText = `${yearMonth.substring(5)} 月`;
                     indexContainer.appendChild(monthLink);
 
-                    // 更新上一个处理的月份
-                    lastYearMonth = yearMonth;
+                    // --- FIX: 将此月份标记为已添加 ---
+                    addedMonths.add(yearMonth);
                 }
+                // --- END FIX ---
             });
 
         } catch (error) {
             console.error('加载公告失败:', error);
-            // 使用从 error.message 获取的更具体信息
             container.innerHTML = `<div class="text-center text-danger p-5">加载公告失败：${error.message}</div>`;
             indexContainer.innerHTML = '<a href="#" class="list-group-item list-group-item-action disabled text-danger">加载失败</a>';
         }
